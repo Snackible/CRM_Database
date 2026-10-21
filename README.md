@@ -10,6 +10,7 @@ npm install
 npm run seed     # optional: loads invented sample clients (flagged, removable from Imports & backup)
 npm run dev      # http://localhost:3000
 npm test         # services and sign-in, against an in-memory Postgres (PGlite)
+npm run test:pg  # the same service tests through the real pg driver (what Vercel uses with Neon)
 ```
 
 `.env.local` (git-ignored; copy `.env.example`) holds the settings. With `DATABASE_URL` empty the app keeps its data in `.data/` using PGlite, a real Postgres in WASM, so no account is needed locally.
@@ -47,8 +48,13 @@ Admins can connect a sheet of customer orders under **Add, Purchase CSV or sheet
 - **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
 - The accounts sheet itself can never be used as an order feed.
 
-## Deploy
+## Connect the real database (Neon) and deploy
 
-1. Create a free Neon project; set `DATABASE_URL` in the Vercel project's Environment Variables.
-2. Set the same names as `.env.example` (accounts sheet, service account, `SESSION_SECRET`, optional `CRON_SECRET` and `INGEST_SECRET`).
-3. Deploy. Tables are created on the first request.
+1. **Create the database.** Sign up at neon.com (free, no card), create a project, and copy the connection string (the pooled one, starting with `postgresql://`).
+2. **Try it locally against Neon.** Put `DATABASE_URL=<that string>` in `.env.local` and run `npm run dev`. The tables are created on the first request. Sign in, add a client, and it appears in Neon's Tables view. Data in the local `.data/` folder is not copied across; `npm run seed` loads the invented sample clients if you want them.
+3. **Deploy.** In Vercel, import the GitHub repo `Snackible/CRM_Database` (Vercel needs access to the Snackible organisation). Add the Neon integration from the Vercel Marketplace, which sets `DATABASE_URL` for you, or paste it by hand.
+4. **Set the other environment variables** in Vercel (Project, Settings, Environment Variables): `SESSION_SECRET`, `ACCOUNTS_SHEET_ID`, `ACCOUNTS_GID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY` (paste the key as it is in `.env.local`, with the `\n` escapes, or with real newlines), and optionally `CRON_SECRET` and `INGEST_SECRET`. Leave `PORTAL_PASSWORD` unset.
+5. **Share the accounts sheet** with the service account address as Editor, then redeploy.
+6. **Check it.** Open the deployed URL, sign in with a sheet account, add a note, and reload.
+
+Free database plans keep little backup history, so use **Imports and backup, Download everything** now and then.

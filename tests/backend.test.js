@@ -1,8 +1,12 @@
 // Runs the real services against an in-memory PGlite database: `npm test`
-process.env.PGLITE_DIR = "memory://crm-test";
-delete process.env.DATABASE_URL;
+// TEST_DATABASE_URL (npm run test:pg) runs the same tests through the real pg driver instead.
+if (process.env.TEST_DATABASE_URL) process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
+else {
+  process.env.PGLITE_DIR = "memory://crm-test";
+  delete process.env.DATABASE_URL;
+}
 
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { parseNumber, parseDate, identityKey, nameSimilarity } from "../lib/normalize.js";
 import { parseCsv } from "../lib/csv.js";
@@ -13,6 +17,9 @@ import { finishImport, importBatch, startImport } from "../lib/importer.js";
 import { clientLookup, getClientDetail, importsList, listClients, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
 import { createSource, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
+import { closeDb } from "../lib/db.js";
+
+after(() => closeDb());
 
 test("numbers, dates and identities are read the way people write them", () => {
   assert.equal(parseNumber("₹1,24,500.50"), 124500.5);
