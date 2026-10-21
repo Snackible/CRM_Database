@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "semi condensed",
+        "createdAt": "2026-10-21T11:23:33.901Z",
+        "reason": "assistant: false positive; Barlow Semi Condensed is the documented display family in DESIGN.md"
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+# Snackible CRM
+
+Everything Snackible knows about each B2B client, plus their purchase history. Next.js (App Router) on Vercel, Postgres on Neon.
+Design: [DESIGN.md](DESIGN.md). Product: [PRODUCT.md](PRODUCT.md). Plan: [PLAN.md](PLAN.md).
+
+## Run it locally
+
+```bash
+npm install
+npm run seed     # optional: loads invented sample clients (flagged, removable from Imports & backup)
+npm run dev      # http://localhost:3000
+npm test         # services and sign-in, against an in-memory Postgres (PGlite)
+```
+
+`.env.local` (git-ignored; copy `.env.example`) holds the settings. With `DATABASE_URL` empty the app keeps its data in `.data/` using PGlite, a real Postgres in WASM, so no account is needed locally.
+
+## Sign-in accounts come from a Google Sheet
+
+Set `ACCOUNTS_SHEET_ID` and `ACCOUNTS_GID` (from the sheet link: `/d/<id>/edit#gid=<gid>`) plus the service account (`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`).
+Share the sheet with the service account address as **Editor**.
+
+Columns (same as the Delivery Tracker users sheet): `username | password | role | account_id | display_name | Email | Contact`.
+
+| Role | Signs in to the CRM | Can do |
+|---|---|---|
+| `b2b` | yes | everything except the admin actions below |
+| `admin`, `master-admin` | yes | also: delete a client, undo an import, download the backup, remove sample data, manage Google Sheet order feeds |
+| `ops`, blank | no | contacts only |
+
+A row with no username or password can never sign in. Check the sheet is readable and shaped right (prints no passwords):
+
+```bash
+npm run check-accounts
+```
+
+**Register a new user** (link on the sign-in page): anyone who knows the master password (the password of the `master-admin` row) can add a BD or Ops account; the row is appended to the sheet. Admins are added in the sheet by hand. With no `master-admin` row, registration is off. Failed guesses are rate limited.
+
+Known limit: passwords in the sheet are plain text, as in the Delivery Tracker. A hashed column is the sensible next step. Sessions last 12 hours and are not revoked if a row is removed before then.
+
+With `ACCOUNTS_SHEET_ID` empty (local trials only) the app falls back to one shared `PORTAL_PASSWORD` plus a name.
+
+## Customer orders from a Google Sheet
+
+Admins can connect a sheet of customer orders under **Add, Purchase CSV or sheet**. It uses the same column mapping, buyer matching, unmatched queue, undo and duplicate protection as a CSV.
+
+- **Pull:** "Read again" on a connected sheet, or a scheduled job calling `GET /api/sheets/sync-all` with `Authorization: Bearer $CRON_SECRET`.
+- **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
+- The accounts sheet itself can never be used as an order feed.
+
+## Deploy
+
+1. Create a free Neon project; set `DATABASE_URL` in the Vercel project's Environment Variables.
+2. Set the same names as `.env.example` (accounts sheet, service account, `SESSION_SECRET`, optional `CRON_SECRET` and `INGEST_SECRET`).
+3. Deploy. Tables are created on the first request.
