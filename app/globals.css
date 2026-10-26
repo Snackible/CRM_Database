@@ -198,6 +198,14 @@ svg { flex: none; }
 .rhythm-line b { font-weight: 600; }
 .rhythm-line .late { color: var(--bad-ink); }
 
+.client-insights { margin: 0; }
+.client-insights > div { display: grid; grid-template-columns: 130px 1fr; gap: 4px 16px; padding: 8px 12px; border-top: 1px solid var(--rule); }
+.client-insights > div:first-child { border-top: 0; }
+.client-insights dt { color: var(--muted); }
+.client-insights dd { margin: 0; }
+.client-insights .bad dt, .client-insights .bad dd { color: var(--bad-ink); }
+@media (max-width: 560px) { .client-insights > div { grid-template-columns: 1fr; } }
+
 /* ---------- tables ---------- */
 .table-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; }

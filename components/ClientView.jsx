@@ -12,7 +12,7 @@ import { BerthStrip, StatusChip } from "@/components/Berth";
 const SRC = { manual: "Manual", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
 const TL_ICON = { note: StickyNote, document: FileText, purchase: ReceiptText };
 
-export default function ClientView({ client, contacts, facts, purchases, timeline }) {
+export default function ClientView({ client, insights = [], contacts, facts, purchases, timeline }) {
   const router = useRouter();
   const [composer, setComposer] = useState(null); // "note" | "fact" | null
   const [noteText, setNoteText] = useState("");
@@ -104,6 +104,20 @@ export default function ClientView({ client, contacts, facts, purchases, timelin
           {quiet && client.usualGap ? <span className="late"><b>{Math.max(0, client.daysSince - client.usualGap)} days</b> overdue</span> : null}
         </div>
       </section>
+
+      {insights.length > 0 && (
+        <section className="panel" aria-labelledby="ins-h">
+          <div className="panel-head"><h2 id="ins-h">Insights</h2><span className="sub">Worked out from orders and notes</span></div>
+          <dl className="client-insights">
+            {insights.map((i) => (
+              <div key={i.label} className={i.tone === "bad" ? "bad" : undefined}>
+                <dt>{i.label}</dt>
+                <dd>{i.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       <div className="cp-grid">
         <div>
