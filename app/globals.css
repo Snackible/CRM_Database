@@ -77,10 +77,13 @@ svg { flex: none; }
   position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; padding: 18px 14px;
   border-right: 2px solid var(--bed-rule); color: var(--bed-ink);
 }
-.brand { display: block; padding: 0 10px 16px; margin-bottom: 14px; border-bottom: 2px solid var(--bed-rule); text-decoration: none; color: var(--bed-ink); }
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 10px 16px; margin-bottom: 14px; border-bottom: 2px solid var(--bed-rule); text-decoration: none; color: var(--bed-ink); }
 .brand-name { display: block; font-weight: 600; letter-spacing: 0.2em; }
 .brand-name small { display: block; font-size: var(--size); font-weight: 500; letter-spacing: 0.06em; opacity: 0.85; }
-.brand-mark { display: none; }
+.brand-mark { display: block; flex: none; }
+.topbar-mark { display: none; flex: none; }
+.topbar-mark svg { display: block; }
+@media (max-width: 860px) { .topbar-mark { display: block; } }
 .nav { display: flex; flex-direction: column; gap: 4px; }
 .nav a {
   display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 2px solid transparent;

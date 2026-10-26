@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, Search, Target, Unlink, Upload, Users } from "lucide-react";
 import { THEMES, THEME_KEY } from "@/lib/themes";
 import { api } from "@/lib/client-api";
+import Logo from "@/components/Logo";
 
 const ADD = [
   { href: "/clients/new", label: "New client", desc: "Name, contacts, terms", icon: Building2 },
@@ -103,6 +104,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
     <div className="app">
       <aside className="rail" aria-label="Main">
         <Link href="/" className="brand">
+          <Logo />
           <span className="brand-name">Snackible<small>Client record</small></span>
         </Link>
         <nav className="nav">
@@ -126,6 +128,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
 
       <div className="main">
         <header className="topbar">
+          <Link href="/" className="topbar-mark" aria-label="Snackible CRM, overview"><Logo size={36} className="" /></Link>
           <form
             className="search"
             role="search"

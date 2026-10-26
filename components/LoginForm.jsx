@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { api } from "@/lib/client-api";
+import Logo from "@/components/Logo";
 
 export default function LoginForm({ mode, canRegister }) {
   const accounts = mode === "accounts";
@@ -29,6 +30,7 @@ export default function LoginForm({ mode, canRegister }) {
     <main className="login">
       <form className="login-box" onSubmit={submit}>
         <div className="brand">
+          <Logo size={40} />
           <span className="brand-name">Snackible<small>Client record</small></span>
         </div>
         <div>
