@@ -8,7 +8,7 @@ else {
 
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import { parseNumber, parseDate, identityKey, nameSimilarity } from "../lib/normalize.js";
+import { parseNumber, parseDate, identityKey, nameSimilarity, readRow, stripReferenceCode } from "../lib/normalize.js";
 import { parseCsv } from "../lib/csv.js";
 import { guessMapping } from "../lib/fields.js";
 import { suggestFacts } from "../lib/patterns.js";
@@ -172,6 +172,51 @@ test("a Google Sheet feed runs through the same importer (reader is faked)", asy
   assert.equal(second.added, 0);
   assert.equal(second.duplicates, 2);
   assert.equal((await importsList())[0].filename, "Sheet: Orders sheet");
+});
+
+test("a PO number in the buyer name is ignored for matching, but never changes the row fingerprint", async () => {
+  const strip = (n) => stripReferenceCode(n);
+  assert.deepEqual(strip("ZEPTO PRIVATE LIMITED P4779366"), { name: "ZEPTO PRIVATE LIMITED", code: "P4779366" });
+  assert.deepEqual(strip("HANDS ON TRADES PRIVATE LIMITED 2011710043021"), { name: "HANDS ON TRADES PRIVATE LIMITED", code: "2011710043021" });
+  assert.equal(strip("SCOOTSY LOGISTICS PRIVATE LIMITED FC5PO345070").name, "SCOOTSY LOGISTICS PRIVATE LIMITED");
+  assert.equal(strip("Sweet Tooth Cafe").code, null);
+  assert.equal(strip("Cafe 24").name, "Cafe 24"); // too short to be a PO number
+  assert.equal(strip("AB12345").name, "AB12345"); // nothing left to be the name
+  const map = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref" };
+  const a = readRow({ PO: "ZEPTO PRIVATE LIMITED P1111111", "Order Value": "100", "Ref No": "R1" }, map, { stripPoCodes: true });
+  const b = readRow({ PO: "ZEPTO PRIVATE LIMITED P2222222", "Order Value": "100", "Ref No": "R1" }, map, { stripPoCodes: true });
+  const raw = readRow({ PO: "ZEPTO PRIVATE LIMITED P1111111", "Order Value": "100", "Ref No": "R1" }, map, {});
+  assert.equal(a.clientKey, b.clientKey);
+  assert.equal(a.clientKey, "name:zepto private limited");
+  assert.equal(a.key, raw.key); // the fingerprint key is the same with or without the option
+  assert.notEqual(a.key, b.key);
+  assert.equal(a.sale.extra["PO code"], "P1111111");
+});
+
+test("with PO codes ignored, every PO of one company lands on one client, and reading again adds nothing", async () => {
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date" };
+  const rows = [
+    { PO: "Zepto Private Limited P1000001", "Order Value": "500", "Ref No": "Z1", "Order Date": "01-03-2026" },
+    { PO: "ZEPTO PRIVATE LIMITED P1000002", "Order Value": "700", "Ref No": "Z2", "Order Date": "08-03-2026" },
+    { PO: "Zepto Private Limited P1000003", "Order Value": "900", "Ref No": "Z3", "Order Date": "15-03-2026" },
+  ];
+  const run = async () => {
+    const { importId } = await startImport({ filename: "po-test", totalRows: rows.length, mapping, options: { createClients: true, stripPoCodes: true }, source: "sheet" }, "t");
+    const r = await importBatch({ importId, offset: 0, rows });
+    await finishImport({ importId });
+    return r;
+  };
+  const first = await run();
+  assert.equal(first.added, 3);
+  assert.equal(first.created, 1);
+  const zepto = (await listClients()).filter((c) => c.name.toLowerCase() === "zepto private limited");
+  assert.equal(zepto.length, 1);
+  assert.equal(zepto[0].orderCount, 3);
+  assert.equal(zepto[0].revenue, 2100);
+  const again = await run();
+  assert.equal(again.added, 0);
+  assert.equal(again.duplicates, 3);
+  assert.equal(again.created, 0);
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {

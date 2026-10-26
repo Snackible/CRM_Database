@@ -29,6 +29,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   const [dayFirst, setDayFirst] = useState("day");
   const [remember, setRemember] = useState(true);
   const [createClients, setCreateClients] = useState(false);
+  const [stripPoCodes, setStripPoCodes] = useState(false);
   const [over, setOver] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(null); // { done, total }
@@ -90,7 +91,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   const hasSale = kind === "leads" || mapped.includes("sale.amount") || mapped.includes("sale.product") || mapped.includes("sale.quantity");
   const targets = kind === "leads" ? LEAD_TARGETS : TARGETS;
   const groups = kind === "leads" ? ["Lead", ""] : ["Client", "Purchase", ""];
-  const options = { dayFirst: dayFirst === "day", createClients };
+  const options = { dayFirst: dayFirst === "day", createClients, stripPoCodes };
 
   async function runFileImport() {
     const { importId } = await api("/api/import", {
@@ -124,7 +125,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   async function runSheetImport() {
     const { id } = await api("/api/sheets", {
       method: "POST",
-      body: { action: "create", kind, name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst, createClients },
+      body: { action: "create", kind, name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst, createClients, stripPoCodes },
     });
     if (remember) await api("/api/mappings", { method: "POST", body: { signature, mapping } }).catch(() => {});
     const r = await api(`/api/sheets/${id}`, { method: "POST" });
@@ -301,6 +302,12 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                 <label className="row" style={{ gap: 8 }}>
                   <input type="checkbox" checked={createClients} onChange={(e) => setCreateClients(e.target.checked)} />
                   Create a client for each buyer that is not found yet (instead of waiting in Unmatched)
+                </label>
+              )}
+              {kind !== "leads" && mapped.includes("client.name") && (
+                <label className="row" style={{ gap: 8 }}>
+                  <input type="checkbox" checked={stripPoCodes} onChange={(e) => setStripPoCodes(e.target.checked)} />
+                  The buyer name ends in a PO number (like “ZEPTO PRIVATE LIMITED P4779366”): ignore it, so every PO of one company is one client
                 </label>
               )}
               <label className="row" style={{ gap: 8 }}>
