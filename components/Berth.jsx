@@ -1,7 +1,12 @@
+import { monthWindow } from "@/lib/metrics";
+
+let META; // month labels, built once per page load, never per client
+const meta = () => (META ??= monthWindow(new Date()).months);
+
 // One cell per month. Filled = ordered (the number is how many orders), hollow = no order,
 // struck = quiet since the last order on an account that has gone past 75 days.
 export function BerthStrip({ client, mini = false, labels = false }) {
-  const months = client.months;
+  const months = client.months ?? meta().map((m, i) => ({ ...m, orders: client.counts[i] }));
   const struckFrom = client.daysSince > 75 ? 12 - client.quietMonths : 99;
   return (
     <div>

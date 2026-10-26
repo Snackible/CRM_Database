@@ -96,7 +96,7 @@ test("manual purchases feed the twelve-month strip and the standing", async () =
   assert.equal(a.revenue, 300);
   assert.equal(a.orderCount, 2);
   assert.equal(a.standing, "Active");
-  assert.equal(a.months.length, 12);
+  assert.equal(a.counts.length, 12);
   assert.equal(a.usualGap, 35);
   assert.equal(list.find((c) => c.id === bId).standing, "New");
 });

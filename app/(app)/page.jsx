@@ -28,8 +28,8 @@ export default async function Overview() {
       <div className="page-head"><div><h1>Overview</h1></div></div>
 
       <p className="lede">
-        <b>{o.total} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months.{" "}
-        <b>{o.attention.length}</b> {o.attention.length === 1 ? "has" : "have"} gone quiet
+        <b>{o.total.toLocaleString("en-IN")} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months.{" "}
+        <b>{o.attentionCount.toLocaleString("en-IN")}</b> {o.attentionCount === 1 ? "has" : "have"} gone quiet
         {o.unmatched.rows > 0 ? <>, and <b>{o.unmatched.rows} purchase {o.unmatched.rows === 1 ? "row is" : "rows are"}</b> waiting to be matched to a client</> : null}.
       </p>
 
@@ -37,7 +37,7 @@ export default async function Overview() {
         <section className="panel" aria-labelledby="attn-h">
           <div className="panel-head">
             <h2 id="attn-h">Gone quiet</h2>
-            <span className="sub">No order for more than 45 days, biggest accounts first</span>
+            <span className="sub">No order for more than 45 days. The {o.attention.length} biggest of {o.attentionCount.toLocaleString("en-IN")}</span>
           </div>
           {o.attention.map((c) => (
             <div className="attn" key={c.id}>
