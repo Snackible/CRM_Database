@@ -15,7 +15,7 @@ export const viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="goldenrod" className={`${condensed.variable} ${franklin.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="paper" className={`${condensed.variable} ${franklin.variable}`} suppressHydrationWarning>
       <body>
         <Script id="theme-init" strategy="beforeInteractive">{THEME_INIT}</Script>
         {children}

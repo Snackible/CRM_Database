@@ -26,7 +26,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
-  const [theme, setThemeState] = useState("goldenrod");
+  const [theme, setThemeState] = useState("paper");
   const inputRef = useRef(null);
 
   const NAV = [
@@ -39,7 +39,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   ];
 
   useEffect(() => {
-    setThemeState(document.documentElement.dataset.theme || "goldenrod");
+    setThemeState(document.documentElement.dataset.theme || "paper");
   }, []);
 
   function chooseTheme(id) {

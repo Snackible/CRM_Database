@@ -2,76 +2,40 @@
    One type size everywhere: rank is weight, case, rule and reversal. State is a mark in a fixed cell.
    Themes only swap the tokens below; the grammar never changes. */
 
+
+/* Three themes only: white, black and red. Status is carried by mark shape and red, never by other colours. */
 :root,
-:root[data-theme="goldenrod"] {
-  --bed: #e0a526;  --bed-ink: #1b1b1b;  --bed-rule: #1b1b1b;
-  --pane: #f6f0dc; --pane-2: #ebe3c4;   --ink: #1b1b1b;   --muted: #4a463a;  --rule: #1b1b1b;
-  --plate: #1b1b1b; --plate-ink: #f6f0dc; --plate-muted: #d3ccb0;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #d9381e;  --bad-ink: #b02610;   --bad-on: #ffffff;
-  --warn: #b8780c; --warn-ink: #7a4a00;
-  --focus: #1b1b1b;
-  color-scheme: light;
-}
 :root[data-theme="paper"] {
-  --bed: #e4e7ee;  --bed-ink: #14171f;  --bed-rule: #14171f;
-  --pane: #ffffff; --pane-2: #edf0f6;   --ink: #14171f;   --muted: #4a5163;  --rule: #14171f;
-  --plate: #14171f; --plate-ink: #ffffff; --plate-muted: #c4cada;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #d12f1a;  --bad-ink: #ad2310;   --bad-on: #ffffff;
-  --warn: #c07a00; --warn-ink: #7a4a00;
-  --focus: #1b4fd1;
+  --bed: #ededed;  --bed-ink: #111111;  --bed-rule: #111111;
+  --pane: #ffffff; --pane-2: #f4f4f4;   --ink: #111111;   --muted: #4d4d4d;  --rule: #111111;
+  --plate: #111111; --plate-ink: #ffffff; --plate-muted: #c8c8c8;
+  --ok: #111111;   --ok-ink: #111111;   --ok-on: #ffffff;
+  --bad: #d0021b;  --bad-ink: #b0001a;   --bad-on: #ffffff;
+  --warn: #111111; --warn-ink: #111111;
+  --badge: #d0021b; --badge-on: #ffffff;
+  --focus: #d0021b;
   color-scheme: light;
 }
 :root[data-theme="carbon"] {
-  --bed: #121212;  --bed-ink: #f1ebd5;  --bed-rule: #8f8a74;
-  --pane: #1f1f1f; --pane-2: #2b2b2b;   --ink: #f1ebd5;   --muted: #bdb69e;  --rule: #8f8a74;
-  --plate: #f6f0dc; --plate-ink: #1b1b1b; --plate-muted: #4a463a;
-  --ok: #4fbf86;   --ok-ink: #6fd6a0;   --ok-on: #07140d;
-  --bad: #ff6a52;  --bad-ink: #ff9582;   --bad-on: #1b0a05;
-  --warn: #f0b429; --warn-ink: #f0b429;
-  --focus: #f6f0dc;
+  --bed: #0b0b0b;  --bed-ink: #f5f5f5;  --bed-rule: #8c8c8c;
+  --pane: #191919; --pane-2: #242424;   --ink: #f5f5f5;   --muted: #b3b3b3;  --rule: #8c8c8c;
+  --plate: #f5f5f5; --plate-ink: #111111; --plate-muted: #4d4d4d;
+  --ok: #f5f5f5;   --ok-ink: #f5f5f5;   --ok-on: #111111;
+  --bad: #ff4d5e;  --bad-ink: #ff8590;   --bad-on: #111111;
+  --warn: #f5f5f5; --warn-ink: #f5f5f5;
+  --badge: #ff4d5e; --badge-on: #111111;
+  --focus: #ff4d5e;
   color-scheme: dark;
-}
-:root[data-theme="slate"] {
-  --bed: #34414d;  --bed-ink: #eef1f4;  --bed-rule: #aebbc7;
-  --pane: #e4e9ee; --pane-2: #d2dae2;   --ink: #17202a;   --muted: #3f4c59;  --rule: #17202a;
-  --plate: #17202a; --plate-ink: #e4e9ee; --plate-muted: #b3bfcb;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #c9331e;  --bad-ink: #a52613;   --bad-on: #ffffff;
-  --warn: #b8780c; --warn-ink: #7a4a00;
-  --focus: #eef1f4;
-  color-scheme: dark;
-}
-:root[data-theme="green"] {
-  --bed: #1f6b46;  --bed-ink: #f6f0dc;  --bed-rule: #f6f0dc;
-  --pane: #f6f0dc; --pane-2: #e5ddbf;   --ink: #14231b;   --muted: #3d4a3f;  --rule: #14231b;
-  --plate: #14231b; --plate-ink: #f6f0dc; --plate-muted: #c2c9b6;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #d9381e;  --bad-ink: #b02610;   --bad-on: #ffffff;
-  --warn: #b8780c; --warn-ink: #7a4a00;
-  --focus: #f6f0dc;
-  color-scheme: light;
 }
 :root[data-theme="vermilion"] {
-  --bed: #c9321a;  --bed-ink: #fff7e6;  --bed-rule: #fff7e6;
-  --pane: #f8f1e0; --pane-2: #ecdfc4;   --ink: #1d1613;   --muted: #4f443d;  --rule: #1d1613;
-  --plate: #1d1613; --plate-ink: #f8f1e0; --plate-muted: #d4c9b4;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #c9321a;  --bad-ink: #a52613;   --bad-on: #ffffff;
-  --badge: #1d1613; --badge-on: #f8f1e0;
-  --warn: #b8780c; --warn-ink: #7a4a00;
-  --focus: #fff7e6;
-  color-scheme: light;
-}
-:root[data-theme="indigo"] {
-  --bed: #1d2b63;  --bed-ink: #f0ece0;  --bed-rule: #f0ece0;
-  --pane: #f4f1e6; --pane-2: #e4dfcc;   --ink: #151a2d;   --muted: #454a60;  --rule: #151a2d;
-  --plate: #0c1230; --plate-ink: #f0ece0; --plate-muted: #bfc4da;
-  --ok: #1f6b46;   --ok-ink: #1f6b46;
-  --bad: #d9381e;  --bad-ink: #b02610;   --bad-on: #ffffff;
-  --warn: #b8780c; --warn-ink: #7a4a00;
-  --focus: #f0ece0;
+  --bed: #c8001a;  --bed-ink: #ffffff;  --bed-rule: #ffffff;
+  --pane: #ffffff; --pane-2: #f4f4f4;   --ink: #111111;   --muted: #4d4d4d;  --rule: #111111;
+  --plate: #111111; --plate-ink: #ffffff; --plate-muted: #c8c8c8;
+  --ok: #111111;   --ok-ink: #111111;   --ok-on: #ffffff;
+  --bad: #c8001a;  --bad-ink: #b0001a;   --bad-on: #ffffff;
+  --warn: #111111; --warn-ink: #111111;
+  --badge: #111111; --badge-on: #ffffff;
+  --focus: #111111;
   color-scheme: light;
 }
 
@@ -80,8 +44,6 @@
   --font-cond: var(--font-condensed), "Arial Narrow", sans-serif;
   --size: 15px;
   --ok-on: #ffffff;
-  --badge: var(--bad);
-  --badge-on: var(--bad-on);
   --rail-w: 232px;
 }
 
