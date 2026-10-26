@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, Download, FileSpreadsheet, RefreshCw, Sheet, Upload } from "lucide-react";
 import { parseCsv } from "@/lib/csv";
-import { MATCH_KEYS, TARGETS, guessMapping } from "@/lib/fields";
+import { LEAD_KEYS, LEAD_TARGETS, MATCH_KEYS, TARGETS, guessLeadMapping, guessMapping } from "@/lib/fields";
 import { dateLabel } from "@/lib/format";
 import { api } from "@/lib/client-api";
 
@@ -33,18 +33,21 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   const [progress, setProgress] = useState(null); // { done, total }
   const [result, setResult] = useState(null);
   const [savedMapping, setSavedMapping] = useState(false);
+  const [sheetKind, setSheetKind] = useState("purchases");
   const [sheetUrl, setSheetUrl] = useState("");
   const [tab, setTab] = useState("");
   const [busy, setBusy] = useState(false);
   const input = useRef(null);
 
-  const signature = file ? file.headers.join("|") : "";
+  const kind = file?.sheet?.kind ?? "purchases";
+  const sigOf = (k, headers) => `${k === "leads" ? "leads:" : ""}${headers.join("|")}`;
+  const signature = file ? sigOf(kind, file.headers) : "";
 
   async function load(name, headers, rows, sheet = null) {
-    let m = guessMapping(headers);
+    let m = sheet?.kind === "leads" ? guessLeadMapping(headers) : guessMapping(headers);
     let reused = false;
     try {
-      const { mapping: saved } = await api(`/api/mappings?signature=${encodeURIComponent(headers.join("|"))}`);
+      const { mapping: saved } = await api(`/api/mappings?signature=${encodeURIComponent(sigOf(sheet?.kind ?? "purchases", headers))}`);
       if (saved) {
         m = Object.fromEntries(headers.map((h) => [h, saved[h] ?? m[h]]));
         reused = true;
@@ -73,7 +76,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
     try {
       const r = await api("/api/sheets", { method: "POST", body: { action: "preview", sheetUrl, tab } });
       if (!r.rows.length) throw new Error("That tab has a header row but no orders yet.");
-      await load(`Google Sheet: ${tab}`, r.headers, r.rows, { sheetUrl, tab, total: r.total });
+      await load(`Google Sheet: ${tab}`, r.headers, r.rows, { sheetUrl, tab, total: r.total, kind: sheetKind });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -82,8 +85,10 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   }
 
   const mapped = Object.values(mapping);
-  const hasKey = MATCH_KEYS.some((k) => mapped.includes(k));
-  const hasSale = mapped.includes("sale.amount") || mapped.includes("sale.product") || mapped.includes("sale.quantity");
+  const hasKey = (kind === "leads" ? LEAD_KEYS : MATCH_KEYS).some((k) => mapped.includes(k));
+  const hasSale = kind === "leads" || mapped.includes("sale.amount") || mapped.includes("sale.product") || mapped.includes("sale.quantity");
+  const targets = kind === "leads" ? LEAD_TARGETS : TARGETS;
+  const groups = kind === "leads" ? ["Lead", ""] : ["Client", "Purchase", ""];
   const options = { dayFirst: dayFirst === "day" };
 
   async function runFileImport() {
@@ -118,7 +123,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   async function runSheetImport() {
     const { id } = await api("/api/sheets", {
       method: "POST",
-      body: { action: "create", name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst },
+      body: { action: "create", kind, name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst },
     });
     if (remember) await api("/api/mappings", { method: "POST", body: { signature, mapping } }).catch(() => {});
     const r = await api(`/api/sheets/${id}`, { method: "POST" });
@@ -203,7 +208,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
           </section>
 
           {isAdmin && <section className="panel" aria-labelledby="gs-h">
-            <div className="panel-head"><h2 id="gs-h">Google Sheet of customer orders</h2><span className="sub">Read again whenever you like; new rows are added, old ones skipped</span></div>
+            <div className="panel-head"><h2 id="gs-h">Connect a Google Sheet</h2><span className="sub">You can connect several. Read again whenever you like; new rows are added, old ones skipped</span></div>
             <div className="panel-body stack">
               {!sheetsConfigured && (
                 <div className="notice info">
@@ -211,6 +216,14 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                   <div>Google Sheets is not connected on this server yet. Add <b>GOOGLE_SERVICE_ACCOUNT_EMAIL</b> and <b>GOOGLE_PRIVATE_KEY</b> to the settings, then share the sheet with that address. Everything below works once they are set.</div>
                 </div>
               )}
+              <div className="field">
+                <span className="label" id="gs-kind">What does the sheet hold?</span>
+                <div className="seg" role="radiogroup" aria-labelledby="gs-kind" style={{ alignSelf: "flex-start" }}>
+                  <button type="button" role="radio" aria-checked={sheetKind === "purchases"} aria-pressed={sheetKind === "purchases"} onClick={() => setSheetKind("purchases")}>Customer orders</button>
+                  <button type="button" role="radio" aria-checked={sheetKind === "leads"} aria-pressed={sheetKind === "leads"} onClick={() => setSheetKind("leads")}>Leads and contacts</button>
+                </div>
+                <span className="hint">{sheetKind === "leads" ? "Each company becomes a lead (a client with no orders yet), with its contact people and a note from the remarks." : "Each row is a purchase, matched to a client by code, email, phone or name."}</span>
+              </div>
               <div className="grid-2">
                 <div className="field">
                   <label htmlFor="gs-url">Sheet link</label>
@@ -230,7 +243,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                   <ul className="feed" style={{ border: "2px solid var(--rule)" }}>
                     {sources.map((s) => (
                       <li key={s.id} className="row" style={{ justifyContent: "space-between" }}>
-                        <span><b>{s.name}</b><span className="muted"> · last read {s.last_synced_at ? dateLabel(s.last_synced_at) : "never"}{s.last_result ? `, ${s.last_result.added} added` : ""}</span></span>
+                        <span><b>{s.name}</b><span className="muted"> · {s.kind === "leads" ? "leads" : "orders"} · last read {s.last_synced_at ? dateLabel(s.last_synced_at) : "never"}{s.last_result ? `, ${s.last_result.added} added` : ""}</span></span>
                         <button className="btn sm" disabled={!sheetsConfigured || busy} onClick={() => syncFeed(s.id)}><RefreshCw size={15} aria-hidden="true" /> Read again</button>
                       </li>
                     ))}
@@ -260,9 +273,9 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                   <span className="col">{h}</span>
                   <span className="samples">{file.rows.slice(0, 3).map((r) => r[h]).filter(Boolean).join("  ·  ") || "empty"}</span>
                   <select className="select" aria-label={`What “${h}” becomes`} value={t} onChange={(e) => setMapping({ ...mapping, [h]: e.target.value })}>
-                    {["Client", "Purchase", ""].map((g) => (
+                    {groups.map((g) => (
                       <optgroup key={g || "other"} label={g || "Other"}>
-                        {TARGETS.filter((x) => x.group === g).map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                        {targets.filter((x) => x.group === g).map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                       </optgroup>
                     ))}
                   </select>
@@ -287,12 +300,12 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                 Remember this mapping for files with the same columns
               </label>
-              {!hasKey && <div className="notice" role="alert"><AlertTriangle size={20} aria-hidden="true" /><div>No column identifies the client. Map a client code, email, phone or name.</div></div>}
+              {!hasKey && <div className="notice" role="alert"><AlertTriangle size={20} aria-hidden="true" /><div>{kind === "leads" ? "No column identifies the lead. Map a company, contact person, phone or email." : "No column identifies the client. Map a client code, email, phone or name."}</div></div>}
               {!hasSale && <div className="notice" role="alert"><AlertTriangle size={20} aria-hidden="true" /><div>No column holds an amount, product or quantity, so these rows would not count as purchases.</div></div>}
             </div>
             <div className="sticky-actions">
               <button className="btn quiet" onClick={() => setStep(1)}>Back</button>
-              <button className="btn primary" disabled={!hasKey || !hasSale || busy} onClick={start}>{file.sheet ? "Save sheet and load orders" : `Import ${file.rows.length} rows`}</button>
+              <button className="btn primary" disabled={!hasKey || !hasSale || busy} onClick={start}>{file.sheet ? (kind === "leads" ? "Save sheet and load leads" : "Save sheet and load orders") : `Import ${file.rows.length} rows`}</button>
             </div>
           </section>
         </>
@@ -312,8 +325,8 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
             <>
               <div className="result-grid" role="status">
                 <div><b>{result.rows}</b><span>rows read</span></div>
-                <div><b>{result.added}</b><span>matched and saved</span></div>
-                <div><b>{result.unmatched}</b><span>buyers not found</span></div>
+                <div><b>{result.added}</b><span>{kind === "leads" ? "new leads" : "matched and saved"}</span></div>
+                <div><b>{kind === "leads" ? (result.contacts ?? 0) : result.unmatched}</b><span>{kind === "leads" ? "contacts added" : "buyers not found"}</span></div>
                 <div><b>{result.duplicates}</b><span>already in the record</span></div>
                 <div><b>{result.skipped}</b><span>skipped</span></div>
               </div>

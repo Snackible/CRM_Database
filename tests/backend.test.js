@@ -181,3 +181,48 @@ test("overview, lookup and deleting a client behave", async () => {
   await deleteClient(bId);
   assert.ok(!(await listClients()).some((c) => c.id === bId));
 });
+
+test("a leads sheet becomes leads with contacts and notes, and reading it again is safe", async () => {
+  const mapping = { "Sr No": "ignore", Date: "lead.date", Name: "lead.name", "Phone Number": "lead.phone", "Company Name": "lead.company", Remarks: "lead.remarks", "Snackible POC": "lead.owner", Update: "lead.followup", Conversion: "lead.extra" };
+  const rows = [
+    { "Sr No": "1", Date: "09/07/2026", Name: "Sandeep", "Phone Number": "86051 68009", "Company Name": "Nazara Technologies", Remarks: "Send catalog with the details", "Snackible POC": "Prabhnoor", Update: "Mailed", Conversion: "" },
+    { "Sr No": "2", Date: "10/07/2026", Name: "Aniruddha", "Phone Number": "+91 97119 89145", "Company Name": "Nazara Technologies", Remarks: "Wants samples", "Snackible POC": "Prabhnoor", Update: "", Conversion: "" },
+    { "Sr No": "3", Date: "15/07/2026", Name: "Shivesh", "Phone Number": "92127 61130", "Company Name": "Bandhan Bank", Remarks: "Send the catalog", "Snackible POC": "Mahi", Update: "Catalogue sent", Conversion: "Warm" },
+    { "Sr No": "4", Date: "", Name: "Greenleaf buyer", "Phone Number": "98450 00117", "Company Name": "Greenleaf Mart", Remarks: "Asked about Diwali hampers", "Snackible POC": "Aditi", Update: "", Conversion: "" },
+    { "Sr No": "5", Date: "", Name: "", "Phone Number": "", "Company Name": "", Remarks: "orphan", "Snackible POC": "", Update: "", Conversion: "" },
+  ];
+  const source = await createSource({ name: "CCBD leads", kind: "leads", sheetUrl: "https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit", tab: "Diwali CCBD", mapping, dayFirst: true }, "t");
+  await assert.rejects(() => createSource({ name: "bad", kind: "leads", sheetUrl: "https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789", tab: "x", mapping: { A: "lead.remarks" } }, "t"), /company, contact person, phone or email/);
+  let current = rows;
+  const read = async () => ({ headers: Object.keys(rows[0]), rows: current });
+
+  const first = await syncSource(source.id, "Sheet bot", { read });
+  assert.deepEqual({ rows: first.rows, added: first.added, contacts: first.contacts, notes: first.notes, skipped: first.skipped, duplicates: first.duplicates }, { rows: 5, added: 2, contacts: 4, notes: 4, skipped: 1, duplicates: 0 });
+
+  const list = await listClients();
+  const nazara = list.find((c) => c.name === "Nazara Technologies");
+  assert.equal(nazara.stage, "lead");
+  assert.equal(nazara.standing, "Lead");
+  assert.equal(nazara.owner, "Prabhnoor");
+  const detail = await getClientDetail(nazara.id);
+  assert.equal(detail.contacts.length, 2, "two people from one company are one client with two contacts");
+  assert.equal(detail.timeline.filter((t) => t.kind === "note").length, 2);
+  assert.ok(detail.facts.some((f) => f.key === "Lead source"));
+  assert.equal(list.filter((c) => c.name === "Greenleaf Mart").length, 1, "an existing client is matched, not duplicated");
+  const greenleaf = await getClientDetail(aId);
+  assert.ok(greenleaf.contacts.some((p) => p.name === "Greenleaf buyer"));
+  assert.equal(greenleaf.client.stage, "client");
+
+  const again = await syncSource(source.id, "Sheet bot", { read });
+  assert.deepEqual({ added: again.added, notes: again.notes, contacts: again.contacts, duplicates: again.duplicates }, { added: 0, notes: 0, contacts: 0, duplicates: 4 });
+
+  current = rows.map((r, i) => (i === 2 ? { ...r, Update: "Meeting booked" } : r));
+  const changed = await syncSource(source.id, "Sheet bot", { read });
+  assert.deepEqual({ added: changed.added, notes: changed.notes, duplicates: changed.duplicates }, { added: 0, notes: 1, duplicates: 3 });
+
+  const undone = await undoImport(first.importId);
+  assert.ok(undone.removed >= 2);
+  const after = await listClients();
+  assert.ok(!after.some((c) => c.name === "Nazara Technologies"), "leads created by that import are removed");
+  assert.ok(after.some((c) => c.name === "Greenleaf Mart"), "an existing client is never removed by an undo");
+});

@@ -42,7 +42,7 @@ export default function ClientList({ clients, owners }) {
           <input className="input" type="search" placeholder="Filter by name, code or city" aria-label="Filter clients" value={text} onChange={(e) => setText(e.target.value)} />
           <select className="select" aria-label="Status" value={standing} onChange={(e) => setStanding(e.target.value)}>
             <option value="">Any status</option>
-            <option>Active</option><option>Watch</option><option>Lapsed</option><option>New</option>
+            <option>Active</option><option>Watch</option><option>Lapsed</option><option>Lead</option><option>New</option>
           </select>
           {owners.length > 0 && (
             <select className="select" aria-label="Owner" value={owner} onChange={(e) => setOwner(e.target.value)}>

@@ -9,7 +9,7 @@ import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
 import { BerthStrip, StatusChip } from "@/components/Berth";
 
-const SRC = { manual: "Manual", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV" };
+const SRC = { manual: "Manual", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
 const TL_ICON = { note: StickyNote, document: FileText, purchase: ReceiptText };
 
 export default function ClientView({ client, contacts, facts, purchases, timeline }) {

@@ -40,9 +40,14 @@ Known limit: passwords in the sheet are plain text, as in the Delivery Tracker. 
 
 With `ACCOUNTS_SHEET_ID` empty (local trials only) the app falls back to one shared `PORTAL_PASSWORD` plus a name.
 
-## Customer orders from a Google Sheet
+## Google Sheet feeds (connect as many as you like)
 
-Admins can connect a sheet of customer orders under **Add, Purchase CSV or sheet**. It uses the same column mapping, buyer matching, unmatched queue, undo and duplicate protection as a CSV.
+Admins connect sheets under **Add, Purchase CSV or sheet**. Share each sheet with the service account as **Viewer**: feeds only read. There are two kinds:
+
+- **Customer orders:** each row is a purchase. It uses the same column mapping, buyer matching, unmatched queue, undo and duplicate protection as a CSV.
+- **Leads and contacts:** each company becomes a lead (a client with no orders yet, shown with a Lead status), its people become contacts, and remarks and follow-ups become notes. Reading the sheet again adds only new or changed rows. Undo removes the leads that import created.
+
+Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order value), `Pending delivery` (tab `Sales`, orders with gross sales and the customer's contact person), `BD Ops Sales Tracking Sheet` (tab `Sheet1`, orders without amounts) and `CCBD Tracker` (tabs such as `Follow up` and `Diwali CCBD`, leads).
 
 - **Pull:** "Read again" on a connected sheet, or a scheduled job calling `GET /api/sheets/sync-all` with `Authorization: Bearer $CRON_SECRET`.
 - **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
