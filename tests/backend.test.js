@@ -174,15 +174,15 @@ test("a Google Sheet feed runs through the same importer (reader is faked)", asy
   assert.equal((await importsList())[0].filename, "Sheet: Orders sheet");
 });
 
-test("feeds sync on a visit at most once an hour, and the Resync button at most every two minutes", async () => {
+test("feeds sync on a visit at most once an hour, and the Resync button at most every five minutes", async () => {
   const read = async () => ({ headers: Object.keys(ROWS[0]), rows: [{ ...ROWS[0], "Invoice No": "SH-1" }, { ...ROWS[0], "Invoice No": "SH-3" }] });
   const first = await syncIfDue("Automatic sync", 60, { read });
   assert.equal(first.length, 1);
   assert.equal(first[0].added, 1); // SH-3 is new, SH-1 was already loaded
   assert.equal(await syncIfDue("Automatic sync", 60, { read }), null); // someone synced within the hour
   const now = await syncNow("t", { read });
-  assert.equal(now.busy, true); // within two minutes of the last sync
-  await query(`UPDATE app_state SET at = now() - interval '3 minutes' WHERE key = 'sheet_sync'`);
+  assert.equal(now.busy, true); // within five minutes of the last sync
+  await query(`UPDATE app_state SET at = now() - interval '6 minutes' WHERE key = 'sheet_sync'`);
   const later = await syncNow("t", { read });
   assert.equal(later.busy, false);
   assert.equal(later.added, 0);

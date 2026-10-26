@@ -5,7 +5,7 @@ import { sampleCount, unmatchedCount } from "@/lib/queries";
 import { syncIfDue } from "@/lib/sheetSync";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // leaves room for the background sheet sync below
+export const maxDuration = 300; // five minutes, so the background sheet sync below can finish
 
 export default async function AppLayout({ children }) {
   const [account, unmatched, sample] = await Promise.all([currentAccount(), unmatchedCount(), sampleCount()]);
