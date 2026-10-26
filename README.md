@@ -11,7 +11,10 @@ npm run seed     # optional: loads invented sample clients (flagged, removable f
 npm run dev      # http://localhost:3000
 npm test         # services and sign-in, against an in-memory Postgres (PGlite)
 npm run test:pg  # the same service tests through the real pg driver (what Vercel uses with Neon)
+npm run backup   # saves every table from the database in use (Neon when DATABASE_URL is set) to backups/
 ```
+
+To move data from the local database into an empty Neon database, stop the app and run `npm run copy-to-postgres` with `TARGET_DATABASE_URL` set. It keeps ids, checks every table and leaves the local copy untouched.
 
 `.env.local` (git-ignored; copy `.env.example`) holds the settings. With `DATABASE_URL` empty the app keeps its data in `.data/` using PGlite, a real Postgres in WASM, so no account is needed locally.
 
