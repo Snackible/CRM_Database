@@ -174,6 +174,22 @@ test("a Google Sheet feed runs through the same importer (reader is faked)", asy
   assert.equal((await importsList())[0].filename, "Sheet: Orders sheet");
 });
 
+test("a note saves with the facts its writer kept, each sourced to the note", async () => {
+  const body = "Spoke with Rahul Mehta. Net 45, 200 packs a month. Send samples by 5 Nov.";
+  const r = await addNote(aId, body, "Aditi", [
+    { category: "Commercial", key: "Payment terms", value: "Net 45", snippet: "Net 45, 200 packs a month." },
+    { category: "Follow-up", key: "Next step", value: "Send samples by 5 Nov", snippet: "Send samples by 5 Nov." },
+  ]);
+  assert.equal(r.facts, 2);
+  const d = await getClientDetail(aId);
+  const f = d.facts.find((x) => x.key === "Next step");
+  assert.equal(f.category, "Follow-up");
+  assert.equal(f.source.type, "note");
+  assert.equal(f.snippet, "Send samples by 5 Nov.");
+  assert.ok(d.timeline.some((t) => t.kind === "note" && t.body === body));
+  await assert.rejects(() => addNote(aId, "x", "Aditi", [{ category: "Other", key: "", value: "v" }]), /name and a value/);
+});
+
 test("feeds sync on a visit at most once an hour, and the Resync button at most every five minutes", async () => {
   const read = async () => ({ headers: Object.keys(ROWS[0]), rows: [{ ...ROWS[0], "Invoice No": "SH-1" }, { ...ROWS[0], "Invoice No": "SH-3" }] });
   const first = await syncIfDue("Automatic sync", 60, { read });

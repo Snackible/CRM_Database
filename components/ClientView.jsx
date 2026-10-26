@@ -8,14 +8,14 @@ import { FACT_CATEGORIES } from "@/lib/constants";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
 import { BerthStrip, StatusChip } from "@/components/Berth";
+import NoteComposer from "@/components/NoteComposer";
 
-const SRC = { manual: "Manual", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
+const SRC = { manual: "Manual", note: "Note", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
 const TL_ICON = { note: StickyNote, document: FileText, purchase: ReceiptText };
 
 export default function ClientView({ client, insights = [], contacts, facts, purchases, timeline }) {
   const router = useRouter();
   const [composer, setComposer] = useState(null); // "note" | "fact" | null
-  const [noteText, setNoteText] = useState("");
   const [fact, setFact] = useState({ category: "Commercial", key: "", value: "" });
   const [showAll, setShowAll] = useState(false);
   const [showOlder, setShowOlder] = useState(false);
@@ -40,15 +40,6 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
     }
   }
 
-  const saveNote = (e) => {
-    e.preventDefault();
-    if (!noteText.trim()) return;
-    run(async () => {
-      await api(`/api/clients/${client.id}/notes`, { method: "POST", body: { body: noteText } });
-      setNoteText("");
-      setComposer(null);
-    });
-  };
   const saveFact = (e) => {
     e.preventDefault();
     if (!fact.key.trim() || !fact.value.trim()) return;
@@ -202,16 +193,14 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
         <section className="panel" aria-labelledby="tl-h">
           <div className="panel-head"><h2 id="tl-h">Timeline</h2><span className="sub">Latest first · {timeline.length} entries</span></div>
           {composer === "note" && (
-            <form className="composer" onSubmit={saveNote}>
-              <div className="field">
-                <label htmlFor="n-text">Note</label>
-                <textarea id="n-text" className="textarea" placeholder="What was said or agreed?" value={noteText} onChange={(e) => setNoteText(e.target.value)} autoFocus />
-              </div>
-              <div className="row">
-                <button className="btn primary sm" type="submit" disabled={busy}>Save note</button>
-                <button className="btn quiet sm" type="button" onClick={() => setComposer(null)}>Cancel</button>
-              </div>
-            </form>
+            <NoteComposer
+              clientId={client.id}
+              onCancel={() => setComposer(null)}
+              onSaved={() => {
+                setComposer(null);
+                router.refresh();
+              }}
+            />
           )}
           {timeline.length === 0 && <div className="empty">Notes, documents and orders will appear here.</div>}
           <ol className="timeline">

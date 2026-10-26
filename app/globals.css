@@ -206,6 +206,16 @@ svg { flex: none; }
 .rhythm-line b { font-weight: 600; }
 .rhythm-line .late { color: var(--bad-ink); }
 
+.note-fact { display: grid; grid-template-columns: 22px 160px 1fr 1.4fr; gap: 8px; align-items: center; }
+.note-fact input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--plate); }
+.composer:has(.note-fact) { container-type: inline-size; }
+/* In a narrow column (the client page timeline, phones): tick and category on one line, what and value below. */
+@container (max-width: 560px) {
+  .note-fact { grid-template-columns: 22px 1fr 1.3fr; }
+  .note-fact > select { grid-column: 2 / 4; }
+  .note-fact > input.input:nth-of-type(2) { grid-column: 2; }
+}
+
 .client-insights { margin: 0; }
 .client-insights > div { display: grid; grid-template-columns: 130px 1fr; gap: 4px 16px; padding: 8px 12px; border-top: 1px solid var(--rule); }
 .client-insights > div:first-child { border-top: 0; }

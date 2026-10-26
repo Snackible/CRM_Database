@@ -6,7 +6,9 @@ import { AlertTriangle, Check, CheckCircle2, FileText, Upload, X } from "lucide-
 import { FACT_CATEGORIES } from "@/lib/constants";
 import { suggestFacts } from "@/lib/patterns";
 import { api } from "@/lib/client-api";
+import { ExtractError, extractText } from "@/lib/extract";
 import ClientPicker from "@/components/ClientPicker";
+import NoteComposer from "@/components/NoteComposer";
 
 const SAMPLE = `Hi Aditi,
 
@@ -43,17 +45,23 @@ export default function InfoForm({ initialClient = null }) {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState("");
   const fileInput = useRef(null);
 
   async function onFile(f) {
     if (!f) return;
-    if (/\.(pdf|docx?)$/i.test(f.name)) {
-      setNotice(`${f.name}: reading PDF and Word files in the browser is not built yet. Paste the text for now.`);
-      return;
-    }
     setNotice("");
-    setTitle(f.name);
-    setText(await f.text());
+    setReading(f.name);
+    try {
+      const out = await extractText(f);
+      setTitle(f.name.replace(/\.[^.]+$/, ""));
+      setText(out.text);
+    } catch (e) {
+      setNotice(e instanceof ExtractError ? e.message : `${f.name} could not be read.`);
+    } finally {
+      setReading("");
+      if (fileInput.current) fileInput.current.value = "";
+    }
   }
   const setItem = (i, patch) => setItems(items.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   const approved = items ? items.filter((s) => s.state === "approved") : [];
@@ -110,12 +118,13 @@ export default function InfoForm({ initialClient = null }) {
       </section>
 
       {mode === "note" && (
-        <form className="panel form" onSubmit={(e) => { e.preventDefault(); if (client && note.trim()) save(() => api(`/api/clients/${client.id}/notes`, { method: "POST", body: { body: note } }), "Note"); }}>
-          <div className="panel-body">
-            <div className="field"><label htmlFor="i-note">Note</label><textarea id="i-note" className="textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="What was said or agreed?" /></div>
-          </div>
-          <div className="sticky-actions"><button className="btn primary" type="submit" disabled={!client || !note.trim() || busy}>Save note</button></div>
-        </form>
+        <section className="panel form">
+          {client ? (
+            <NoteComposer clientId={client.id} idPrefix="i" autoFocus={false} onSaved={(r) => setSaved(r.facts ? `Note and ${r.facts} ${r.facts === 1 ? "fact" : "facts"}` : "Note")} />
+          ) : (
+            <div className="empty">Choose a client first.</div>
+          )}
+        </section>
       )}
 
       {mode === "fact" && (
@@ -139,8 +148,8 @@ export default function InfoForm({ initialClient = null }) {
             <div className="field"><label htmlFor="d-title">Title</label><input id="d-title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Supply MoU, Re: Diwali stock, call on 12 Oct" /></div>
             <div className="field"><label htmlFor="d-text">Paste text</label><textarea id="d-text" className="textarea" style={{ minHeight: 220 }} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste an email, a WhatsApp chat export, or the text of a contract." /></div>
             <div className="row">
-              <input ref={fileInput} type="file" hidden accept=".txt,.md,.eml,.pdf,.doc,.docx,text/plain" onChange={(e) => onFile(e.target.files[0])} />
-              <button type="button" className="btn" onClick={() => fileInput.current?.click()}><Upload size={17} aria-hidden="true" /> Upload a text file</button>
+              <input ref={fileInput} type="file" hidden accept=".pdf,.docx,.doc,.txt,.md,.eml,application/pdf,text/plain" onChange={(e) => onFile(e.target.files[0])} />
+              <button type="button" className="btn" disabled={!!reading} onClick={() => fileInput.current?.click()}><Upload size={17} aria-hidden="true" /> {reading ? `Reading ${reading}…` : "Upload PDF, Word or text"}</button>
               <button type="button" className="btn quiet" onClick={() => { setText(SAMPLE); setTitle("Re: first order terms"); }}><FileText size={17} aria-hidden="true" /> Try a sample email</button>
             </div>
             {notice && <div className="notice" role="alert"><AlertTriangle size={20} aria-hidden="true" /><div>{notice}</div></div>}
