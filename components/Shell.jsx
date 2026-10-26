@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, Search, Target, Unlink, Upload, Users } from "lucide-react";
+import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, RefreshCw, Search, Target, Unlink, Upload, Users } from "lucide-react";
 import { THEMES, THEME_KEY } from "@/lib/themes";
 import { api } from "@/lib/client-api";
 import Logo from "@/components/Logo";
@@ -28,6 +28,8 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const [addOpen, setAddOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [theme, setThemeState] = useState("paper");
+  const [syncing, setSyncing] = useState(false);
+  const [syncNote, setSyncNote] = useState("");
   const inputRef = useRef(null);
 
   const NAV = [
@@ -94,6 +96,24 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
       clearTimeout(t);
     };
   }, [q]);
+
+  async function resync() {
+    setSyncing(true);
+    setSyncNote("Reading the sheets…");
+    let note;
+    try {
+      const r = await api("/api/sheets/sync", { method: "POST" });
+      if (r.busy) note = "Synced moments ago";
+      else if (r.failed.length) note = `Could not read ${r.failed.join(", ")}`;
+      else note = r.added ? `${r.added.toLocaleString("en-IN")} new ${r.added === 1 ? "row" : "rows"}` : "Up to date";
+      router.refresh();
+    } catch (e) {
+      note = e.message;
+    }
+    setSyncing(false);
+    setSyncNote(note);
+    setTimeout(() => setSyncNote(""), 8000);
+  }
 
   async function signOut() {
     await api("/api/session", { method: "DELETE" }).catch(() => {});
@@ -169,6 +189,10 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
             )}
           </form>
           <div className="topbar-spacer" />
+          {syncNote && <span className="sync-note" role="status">{syncNote}</span>}
+          <button className="btn icon" aria-label="Read the Google Sheets again" title="Read the Google Sheets again" aria-busy={syncing} disabled={syncing} onClick={resync}>
+            <RefreshCw size={17} aria-hidden="true" className={syncing ? "spin" : undefined} />
+          </button>
           <button className="btn icon" aria-label="Colours" title="Colours" aria-expanded={themeOpen} aria-haspopup="dialog" onClick={() => { setThemeOpen((v) => !v); setAddOpen(false); }}>
             <Palette size={17} aria-hidden="true" />
           </button>

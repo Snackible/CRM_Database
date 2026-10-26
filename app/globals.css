@@ -111,6 +111,11 @@ svg { flex: none; }
 .results .d { color: var(--muted); }
 .results .none { padding: 14px; color: var(--muted); }
 .topbar-spacer { flex: 1; }
+.sync-note { color: var(--bed-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+@media (max-width: 860px) { .sync-note { display: none; } }
 .page { width: 100%; max-width: 1360px; padding: 20px; margin: 0 auto; }
 
 /* ---------- controls ---------- */
