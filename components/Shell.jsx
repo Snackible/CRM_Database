@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Palette, Plus, Receipt, Search, Unlink, Upload, Users } from "lucide-react";
+import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, Search, Target, Unlink, Upload, Users } from "lucide-react";
 import { THEMES, THEME_KEY } from "@/lib/themes";
 import { api } from "@/lib/client-api";
 
@@ -32,6 +32,8 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const NAV = [
     { href: "/", label: "Overview", icon: LayoutDashboard },
     { href: "/clients", label: "Clients", icon: Users },
+    { href: "/leads", label: "Leads", icon: Target },
+    { href: "/insights", label: "Insights", icon: Lightbulb },
     { href: "/unmatched", label: "Unmatched", icon: Unlink, count: unmatched },
     { href: "/imports", label: "Imports & backup", short: "Imports", icon: DatabaseBackup },
   ];
@@ -212,7 +214,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
         <button className="plus" aria-label="Add" aria-expanded={addOpen} onClick={() => { setAddOpen((v) => !v); setThemeOpen(false); }}>
           <span className="disc"><Plus size={24} strokeWidth={2.4} aria-hidden="true" /></span>
         </button>
-        {NAV.slice(2).map((n) => (
+        {NAV.slice(2, 5).map((n) => (
           <Link key={n.href} href={n.href} aria-current={active(pathname, n.href) ? "page" : undefined}>
             <n.icon size={21} aria-hidden="true" />{n.short ?? n.label}
             {n.count ? <span className="badge">{n.count}</span> : null}

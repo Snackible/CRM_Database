@@ -406,7 +406,7 @@ svg { flex: none; }
   .btn { height: 44px; }
   .btn.sm { height: 40px; }
   .input, .select { min-height: 44px; }
-  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--bed); border-top: 2px solid var(--bed-rule); padding: 0 0 env(safe-area-inset-bottom); }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--bed); border-top: 2px solid var(--bed-rule); padding: 0 0 env(safe-area-inset-bottom); }
   .tabbar a, .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; padding: 6px 2px; border: 0; background: transparent; color: var(--bed-ink); text-decoration: none; position: relative; }
   .tabbar a[aria-current="page"] { background: var(--pane); color: var(--ink); font-weight: 600; }
   .tabbar .plus { background: var(--plate); color: var(--plate-ink); }
