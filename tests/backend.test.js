@@ -226,3 +226,26 @@ test("a leads sheet becomes leads with contacts and notes, and reading it again 
   assert.ok(!after.some((c) => c.name === "Nazara Technologies"), "leads created by that import are removed");
   assert.ok(after.some((c) => c.name === "Greenleaf Mart"), "an existing client is never removed by an undo");
 });
+
+test("an import can create a client for each new buyer, once, and undo removes them", async () => {
+  const mapping = { Buyer: "client.name", City: "client.city", Ref: "sale.ref", Day: "sale.date", Value: "sale.amount" };
+  const rows = (ref) => [
+    { Buyer: "Fresh Buyer Pvt Ltd", City: "Pune", Ref: `${ref}-1`, Day: "02-03-2026", Value: "1,000" },
+    { Buyer: "Fresh Buyer Pvt Ltd", City: "Pune", Ref: `${ref}-2`, Day: "09-03-2026", Value: "2,500" },
+    { Buyer: "Second Buyer", City: "", Ref: `${ref}-3`, Day: "10-03-2026", Value: "700" },
+  ];
+  const { importId } = await startImport({ filename: "master.csv", mapping, options: { createClients: true } }, "t");
+  const r1 = await importBatch({ importId, offset: 0, rows: rows("CC") });
+  assert.deepEqual({ added: r1.added, unmatched: r1.unmatched, created: r1.created }, { added: 3, unmatched: 0, created: 2 });
+  const r2 = await importBatch({ importId, offset: 3, rows: [{ Buyer: "fresh buyer pvt ltd", City: "", Ref: "CC-9", Day: "11-03-2026", Value: "50" }] });
+  assert.deepEqual({ added: r2.added, created: r2.created }, { added: 1, created: 0 }, "the same buyer in a later batch is matched, not created again");
+  await finishImport({ importId });
+  const fresh = (await listClients()).find((c) => c.name === "Fresh Buyer Pvt Ltd");
+  assert.equal(fresh.city, "Pune");
+  assert.equal((await getClientDetail(fresh.id)).purchases.length, 3);
+  assert.equal((await unmatchedGroups()).length, 0);
+
+  await undoImport(importId);
+  const after = await listClients();
+  assert.ok(!after.some((c) => c.name === "Fresh Buyer Pvt Ltd" || c.name === "Second Buyer"));
+});

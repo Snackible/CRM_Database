@@ -28,6 +28,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   const [mapping, setMapping] = useState({});
   const [dayFirst, setDayFirst] = useState("day");
   const [remember, setRemember] = useState(true);
+  const [createClients, setCreateClients] = useState(false);
   const [over, setOver] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(null); // { done, total }
@@ -89,7 +90,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   const hasSale = kind === "leads" || mapped.includes("sale.amount") || mapped.includes("sale.product") || mapped.includes("sale.quantity");
   const targets = kind === "leads" ? LEAD_TARGETS : TARGETS;
   const groups = kind === "leads" ? ["Lead", ""] : ["Client", "Purchase", ""];
-  const options = { dayFirst: dayFirst === "day" };
+  const options = { dayFirst: dayFirst === "day", createClients };
 
   async function runFileImport() {
     const { importId } = await api("/api/import", {
@@ -123,7 +124,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
   async function runSheetImport() {
     const { id } = await api("/api/sheets", {
       method: "POST",
-      body: { action: "create", kind, name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst },
+      body: { action: "create", kind, name: file.sheet.tab, sheetUrl: file.sheet.sheetUrl, tab: file.sheet.tab, mapping, dayFirst: options.dayFirst, createClients },
     });
     if (remember) await api("/api/mappings", { method: "POST", body: { signature, mapping } }).catch(() => {});
     const r = await api(`/api/sheets/${id}`, { method: "POST" });
@@ -296,6 +297,12 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
                   </select>
                 </div>
               )}
+              {kind !== "leads" && (
+                <label className="row" style={{ gap: 8 }}>
+                  <input type="checkbox" checked={createClients} onChange={(e) => setCreateClients(e.target.checked)} />
+                  Create a client for each buyer that is not found yet (instead of waiting in Unmatched)
+                </label>
+              )}
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                 Remember this mapping for files with the same columns
@@ -326,7 +333,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
               <div className="result-grid" role="status">
                 <div><b>{result.rows}</b><span>rows read</span></div>
                 <div><b>{result.added}</b><span>{kind === "leads" ? "new leads" : "matched and saved"}</span></div>
-                <div><b>{kind === "leads" ? (result.contacts ?? 0) : result.unmatched}</b><span>{kind === "leads" ? "contacts added" : "buyers not found"}</span></div>
+                <div><b>{kind === "leads" ? (result.contacts ?? 0) : (result.created ?? 0) > 0 ? result.created : result.unmatched}</b><span>{kind === "leads" ? "contacts added" : (result.created ?? 0) > 0 ? "new clients created" : "buyers not found"}</span></div>
                 <div><b>{result.duplicates}</b><span>already in the record</span></div>
                 <div><b>{result.skipped}</b><span>skipped</span></div>
               </div>
