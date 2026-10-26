@@ -427,3 +427,10 @@ svg { flex: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Loading placeholders: plain blocks, no shimmer, so nothing moves for people who ask for less motion. */
+.skel { background: var(--pane-2); }
+.skel-title { height: 22px; width: 280px; background: var(--plate-muted); opacity: 0.5; margin-bottom: 8px; }
+.skel-line { height: 14px; width: 420px; max-width: 100%; }
+.skel-row { height: 36px; border-bottom: 1px dotted var(--rule); }
+.loading .plate .skel-line { background: var(--plate-muted); opacity: 0.35; }
