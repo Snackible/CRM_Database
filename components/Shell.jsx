@@ -78,8 +78,14 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
         setThemeOpen(false);
       }
     };
+    // any page can open the chat (the Ask button on a client's page does)
+    const openChat = () => setChatOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("crm:chat", openChat);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("crm:chat", openChat);
+    };
   }, []);
 
   // Search as you type, a beat after the last key.
@@ -197,8 +203,8 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
           </form>
           <div className="topbar-spacer" />
           {syncNote && <span className="sync-note" role="status">{syncNote}</span>}
-          <button className="btn icon" aria-label="Ask about your clients" title="Ask" aria-expanded={chatOpen} onClick={() => { setChatOpen((v) => !v); setAddOpen(false); setThemeOpen(false); }}>
-            <MessageSquare size={17} aria-hidden="true" />
+          <button className="btn ask-btn" aria-label="Ask about your clients" title="Ask about your clients" aria-expanded={chatOpen} onClick={() => { setChatOpen((v) => !v); setAddOpen(false); setThemeOpen(false); }}>
+            <MessageSquare size={17} aria-hidden="true" /> <span className="desk-only">Ask</span>
           </button>
           <button className="btn icon" aria-label="Read the Google Sheets again" title="Read the Google Sheets again" aria-busy={syncing} disabled={syncing} onClick={resync}>
             <RefreshCw size={17} aria-hidden="true" className={syncing ? "spin" : undefined} />

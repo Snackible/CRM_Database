@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileText, ListPlus, Mail, Phone, Receipt, ReceiptText, StickyNote, Trash2 } from "lucide-react";
+import { FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2 } from "lucide-react";
 import { FACT_CATEGORIES } from "@/lib/constants";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -74,6 +74,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
           <button className="btn" aria-expanded={composer === "fact"} onClick={() => setComposer(composer === "fact" ? null : "fact")}><ListPlus size={17} aria-hidden="true" /> Fact</button>
           <Link className="btn" href={`/purchases/new?client=${client.id}`}><Receipt size={17} aria-hidden="true" /> Purchase</Link>
           <Link className="btn" href={`/documents/new?client=${client.id}`}><FileText size={17} aria-hidden="true" /> Document</Link>
+          <button className="btn primary" onClick={() => window.dispatchEvent(new Event("crm:chat"))}><MessageSquare size={17} aria-hidden="true" /> Ask about this client</button>
         </div>
       </div>
 
