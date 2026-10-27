@@ -99,7 +99,7 @@ components:
 
 The CRM is a darkroom under a safelight. A red room fills the margins, the top bar and the sign-in; the work sits on white record sheets, each laid over a black under-sheet turned a fraction of a degree, like exposure sheets stacked on a bench. Heavy tall caps name things, Roboto carries prose, Roboto Mono carries figures, dates and codes. The look is dense, ruled and flat: black hairlines, dotted row dividers, zero radius.
 
-State is never a new colour. How busy a month was is hatch density; a quiet or lapsed account is cross-hatched in red; a month before the client existed is dotted. Colour is red, black and white only, in all three themes (Safelight red room by default, White, Black); themes swap tokens and never change the grammar.
+State is never a new colour. How busy a month was is hatch density; a quiet or lapsed account is cross-hatched in red; a month before the client existed is dotted. Inside the sheets colour is red, black and white only; the room around them can be any of seven themes (Safelight red by default, Amber, Green, Indigo, Slate, White, Black). Themes swap tokens and never change the grammar.
 
 **Key Characteristics:**
 - Red room, white sheets, black under-sheets and black nav sheet.
@@ -110,7 +110,7 @@ State is never a new colour. How busy a month was is hatch density; a quiet or l
 
 ## Colors
 
-Three themes, one palette logic: a room colour, a sheet colour, and black or white ink. Tokens are named by role in CSS (`--bed`, `--pane`, `--ink`, `--plate`, `--rail-bg`, `--bad`, `--badge`, `--ok`) and swap per theme.
+Seven themes, one palette logic: a room colour, a sheet colour, and black or white ink. Safelight, Amber, Green, Indigo and Slate are rooms around the same white sheets and black rail; White and Black change the sheets too. Tokens are named by role in CSS (`--bed`, `--pane`, `--ink`, `--plate`, `--rail-bg`, `--bad`, `--badge`, `--ok`) and swap per theme.
 
 ### Primary
 - **Safelight Red** (#c8000f): the room (`--bed`) in the default theme: page background, top bar, sign-in surround. Also the lapsed/quiet state (`--bad`), the nav extent bar, the phone Add cell, and the badge text.
@@ -126,7 +126,7 @@ Three themes, one palette logic: a room colour, a sheet colour, and black or whi
 - **Carbon theme**: room Ink Black, sheets Carbon Sheet (#161616), wash #202020, rules #6d6d6d, ink #f5f5f5; plate and rail invert to #f5f5f5; red lifts to #ff3b47 (ink #ff6670).
 
 ### Named Rules
-**The Three Colours Rule.** Red, black and white only. A new state is a new hatch or a new mark, never a new hue.
+**The Red Is State Rule.** Sheets, nav and marks use red, black and white only, in every theme; the room colour is the only other hue. Red always means quiet, lapsed or overdue. A new state is a new hatch or a new mark, never a new hue.
 **The Red Is State Rule.** Red marks the room, lapsed/quiet/error, and the single Add affordance on phones. It is never decorative on a sheet.
 **The Token Swap Rule.** Components read `--bed`, `--pane`, `--ink`, `--plate`, `--rail-bg`, `--bad`, `--ok`, `--badge`; a theme changes tokens only.
 

@@ -1,7 +1,7 @@
 /* Snackible CRM. A darkroom under a safelight: a red room holds white record sheets laid over a black under-sheet.
    Heavy tall caps (Big Shoulders) name things, Roboto carries prose, Roboto Mono carries figures and dates.
    State is hatching, never a new colour: denser hatch means more orders, red cross-hatch means quiet.
-   Themes only swap the tokens below; the grammar never changes. Red, black and white only. */
+   Themes only swap the tokens below; the grammar never changes. Red marks state in every theme. */
 
 :root,
 :root[data-theme="safelight"] {
@@ -16,6 +16,56 @@
   --focus: #ffffff;
   color-scheme: light;
 }
+/* More rooms: the same sheets, nav and hatching under a different light. Red stays the state colour in every one. */
+:root[data-theme="amber"] {
+  --bed: #e0a526;  --bed-ink: #0a0a0a;  --bed-rule: #0a0a0a;
+  --pane: #ffffff; --pane-2: #f2f2f2;   --ink: #0a0a0a;   --muted: #4a4a4a;  --rule: #0a0a0a;
+  --plate: #0a0a0a; --plate-ink: #ffffff; --plate-muted: #cfcfcf;
+  --rail-bg: #0a0a0a; --rail-ink: #ffffff;
+  --ok: #0a0a0a;   --ok-ink: #0a0a0a;   --ok-on: #ffffff;
+  --bad: #c8000f;  --bad-ink: #b0000d;   --bad-on: #ffffff;
+  --warn: #0a0a0a; --warn-ink: #0a0a0a;
+  --badge: #c8000f; --badge-on: #ffffff;
+  --focus: #0a0a0a;
+  color-scheme: light;
+}
+:root[data-theme="green"] {
+  --bed: #1f6b46;  --bed-ink: #ffffff;  --bed-rule: #ffffff;
+  --pane: #ffffff; --pane-2: #f2f2f2;   --ink: #0a0a0a;   --muted: #4a4a4a;  --rule: #0a0a0a;
+  --plate: #0a0a0a; --plate-ink: #ffffff; --plate-muted: #cfcfcf;
+  --rail-bg: #0a0a0a; --rail-ink: #ffffff;
+  --ok: #0a0a0a;   --ok-ink: #0a0a0a;   --ok-on: #ffffff;
+  --bad: #c8000f;  --bad-ink: #b0000d;   --bad-on: #ffffff;
+  --warn: #0a0a0a; --warn-ink: #0a0a0a;
+  --badge: #ffffff; --badge-on: #c8000f;
+  --focus: #ffffff;
+  color-scheme: light;
+}
+:root[data-theme="indigo"] {
+  --bed: #1d2b63;  --bed-ink: #ffffff;  --bed-rule: #ffffff;
+  --pane: #ffffff; --pane-2: #f2f2f2;   --ink: #0a0a0a;   --muted: #4a4a4a;  --rule: #0a0a0a;
+  --plate: #0a0a0a; --plate-ink: #ffffff; --plate-muted: #cfcfcf;
+  --rail-bg: #0a0a0a; --rail-ink: #ffffff;
+  --ok: #0a0a0a;   --ok-ink: #0a0a0a;   --ok-on: #ffffff;
+  --bad: #c8000f;  --bad-ink: #b0000d;   --bad-on: #ffffff;
+  --warn: #0a0a0a; --warn-ink: #0a0a0a;
+  --badge: #ffffff; --badge-on: #c8000f;
+  --focus: #ffffff;
+  color-scheme: light;
+}
+:root[data-theme="slate"] {
+  --bed: #34414d;  --bed-ink: #ffffff;  --bed-rule: #ffffff;
+  --pane: #ffffff; --pane-2: #f2f2f2;   --ink: #0a0a0a;   --muted: #4a4a4a;  --rule: #0a0a0a;
+  --plate: #0a0a0a; --plate-ink: #ffffff; --plate-muted: #cfcfcf;
+  --rail-bg: #0a0a0a; --rail-ink: #ffffff;
+  --ok: #0a0a0a;   --ok-ink: #0a0a0a;   --ok-on: #ffffff;
+  --bad: #c8000f;  --bad-ink: #b0000d;   --bad-on: #ffffff;
+  --warn: #0a0a0a; --warn-ink: #0a0a0a;
+  --badge: #ffffff; --badge-on: #c8000f;
+  --focus: #ffffff;
+  color-scheme: light;
+}
+
 :root[data-theme="paper"] {
   --bed: #ececec;  --bed-ink: #0a0a0a;  --bed-rule: #0a0a0a;
   --pane: #ffffff; --pane-2: #f2f2f2;   --ink: #0a0a0a;   --muted: #4a4a4a;  --rule: #0a0a0a;
@@ -395,17 +445,17 @@ svg { flex: none; }
 .login-box > :last-child { margin-bottom: 20px; }
 
 /* ---------- theme switcher, add menu, tab bar ---------- */
-.swatches { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 4px; }
+.swatches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 4px; }
 .swatch { display: flex; align-items: center; gap: 10px; padding: 6px; border: 2px solid transparent; background: transparent; text-align: left; color: var(--ink); font: 800 18px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; }
 .swatch:hover { border-color: var(--rule); }
 .swatch[aria-checked="true"] { border-color: var(--rule); background: var(--pane-2); }
-.swatch { width: 100%; padding: 5px 8px; gap: 10px; }
-.swatch .chipset { display: grid; grid-template-columns: 14px 9px 7px; height: 20px; border: 2px solid var(--rule); flex: none; }
+.swatch { width: 100%; padding: 5px 6px; gap: 8px; }
+.swatch .chipset { display: grid; grid-template-columns: 12px 8px 6px; height: 20px; border: 2px solid var(--rule); flex: none; }
 .swatch .nm { display: flex; align-items: baseline; gap: 8px; line-height: 1.1; min-width: 0; }
 .swatch .nm b { font: 800 17px var(--font-cond); letter-spacing: 0.06em; }
 .swatch .nm small { font: 400 12px var(--font); letter-spacing: 0; text-transform: none; color: var(--muted); }
 .addmenu { position: fixed; right: 24px; top: 58px; z-index: 40; width: 310px; padding: 4px; background: var(--pane); color: var(--ink); border: 2px solid var(--rule); box-shadow: var(--sheet-shadow); }
-.addmenu.themes { width: 190px; right: 24px; }
+.addmenu.themes { width: 262px; right: 24px; }
 .addmenu.themes .menu-title { padding: 4px 8px; font-size: 16px; border-bottom-width: 2px; }
 .addmenu .menu-title { padding: 8px 10px; font-weight: 800; border-bottom: 3px solid var(--rule); font-family: var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; }
 .addmenu a { display: flex; gap: 12px; align-items: center; padding: 10px; text-decoration: none; color: var(--ink); border: 2px solid transparent; }
