@@ -307,7 +307,7 @@ export default function ImportFlow({ isAdmin, sheetsConfigured, sources }) {
               {kind !== "leads" && mapped.includes("client.name") && (
                 <label className="row" style={{ gap: 8 }}>
                   <input type="checkbox" checked={stripPoCodes} onChange={(e) => setStripPoCodes(e.target.checked)} />
-                  The buyer name ends in a PO number (like “ZEPTO PRIVATE LIMITED P4779366”): ignore it, so every PO of one company is one client
+                  Treat one company as one client: ignore a PO number at the end of the buyer name (“ZEPTO PRIVATE LIMITED P4779366”) and spelling variants (“Big Basket PO No”, “BigBasket Ltd”)
                 </label>
               )}
               <label className="row" style={{ gap: 8 }}>

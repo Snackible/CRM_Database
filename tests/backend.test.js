@@ -8,7 +8,7 @@ else {
 
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import { parseNumber, parseDate, identityKey, nameSimilarity, readRow, stripReferenceCode } from "../lib/normalize.js";
+import { parseNumber, parseDate, identityKey, nameSimilarity, looseNameKey, readRow, stripReferenceCode } from "../lib/normalize.js";
 import { parseCsv } from "../lib/csv.js";
 import { guessMapping } from "../lib/fields.js";
 import { suggestFacts } from "../lib/patterns.js";
@@ -217,6 +217,33 @@ test("with PO codes ignored, every PO of one company lands on one client, and re
   assert.equal(again.added, 0);
   assert.equal(again.duplicates, 3);
   assert.equal(again.created, 0);
+});
+
+test("spelling variants of a company land on one client, existing or new", async () => {
+  assert.equal(looseNameKey("Big Basket PO No"), "bigbasket");
+  assert.equal(looseNameKey("BIGBASKET LIMITED"), "bigbasket");
+  assert.equal(looseNameKey("Flipkart Minutes PVT. LTD."), looseNameKey("Flipkart Minutes Pvt Ltd"));
+  assert.equal(looseNameKey("Zepto"), "zepto");
+  assert.equal(looseNameKey("Ltd"), null); // nothing left to trust
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date" };
+  const run = async (rows) => {
+    const { importId } = await startImport({ filename: "variants", totalRows: rows.length, mapping, options: { createClients: true, stripPoCodes: true }, source: "sheet" }, "t");
+    const r = await importBatch({ importId, offset: 0, rows });
+    await finishImport({ importId });
+    return r;
+  };
+  const line = (PO, ref) => ({ PO, "Order Value": "100", "Ref No": ref, "Order Date": "02-04-2026" });
+  // new variants arriving together make one client
+  const first = await run([line("Nykaa E Retail Pvt Ltd", "N1"), line("NYKAA E-RETAIL LIMITED", "N2"), line("Nykaa E Retail Pvt. Ltd. N998877", "N3")]);
+  assert.equal(first.added, 3);
+  assert.equal(first.created, 1);
+  // a later variant joins the client that already exists
+  const second = await run([line("nykaa e retail private limited po no", "N4")]);
+  assert.equal(second.added, 1);
+  assert.equal(second.created, 0);
+  const nykaa = (await listClients()).filter((c) => looseNameKey(c.name) === "nykaaeretail");
+  assert.equal(nykaa.length, 1);
+  assert.equal(nykaa[0].orderCount, 4);
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
