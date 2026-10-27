@@ -1,257 +1,215 @@
 ---
 name: Snackible CRM
-description: A pocket airline timetable read as a rack of opaque panes on a lit bed. One type size, 2px rules, no radius, state as a mark in a fixed cell.
+description: A darkroom under a safelight. A red room holds white record sheets laid over black under-sheets; state is hatching, never a new colour.
 colors:
-  bed: "#e0a526"
-  bed-ink: "#1b1b1b"
-  bed-rule: "#1b1b1b"
-  pane: "#f6f0dc"
-  pane-2: "#ebe3c4"
-  ink: "#1b1b1b"
-  muted: "#4a463a"
-  rule: "#1b1b1b"
-  plate: "#1b1b1b"
-  plate-ink: "#f6f0dc"
-  plate-muted: "#d3ccb0"
-  ok: "#1f6b46"
-  ok-ink: "#1f6b46"
-  ok-on: "#ffffff"
-  bad: "#d9381e"
-  bad-ink: "#b02610"
-  bad-on: "#ffffff"
-  warn: "#b8780c"
-  warn-ink: "#7a4a00"
-  focus: "#1b1b1b"
+  safelight-red: "#c8000f"
+  safelight-red-ink: "#b0000d"
+  white-sheet: "#ffffff"
+  sheet-wash: "#f2f2f2"
+  ink-black: "#0a0a0a"
+  graphite: "#4a4a4a"
+  plate-muted: "#cfcfcf"
+  paper-room: "#ececec"
+  carbon-sheet: "#161616"
+  carbon-wash: "#202020"
+  carbon-rule: "#6d6d6d"
+  carbon-ink: "#f5f5f5"
+  carbon-muted: "#b8b8b8"
+  carbon-red: "#ff3b47"
+  carbon-red-ink: "#ff6670"
 typography:
-  label:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "15px"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "0.09em"
+  display:
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "clamp(40px, 6.4vw, 84px)"
+    fontWeight: 900
+    lineHeight: 0.9
+    letterSpacing: "0"
+  headline:
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "clamp(34px, 5vw, 56px)"
+    fontWeight: 900
+    lineHeight: 0.95
+    letterSpacing: "0.01em"
   title:
-    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "15px"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "0.2em"
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "22px"
+    fontWeight: 800
+    letterSpacing: "0.06em"
+  label:
+    fontFamily: "Big Shoulders, Arial Narrow, sans-serif"
+    fontSize: "17px"
+    fontWeight: 700
+    letterSpacing: "0.06em"
   body:
-    fontFamily: "Libre Franklin, Segoe UI, system-ui, sans-serif"
+    fontFamily: "Roboto, Segoe UI, system-ui, sans-serif"
     fontSize: "15px"
     fontWeight: 400
-    lineHeight: 1.4
-    fontFeature: "tabular-nums"
-  body-strong:
-    fontFamily: "Libre Franklin, Segoe UI, system-ui, sans-serif"
-    fontSize: "15px"
-    fontWeight: 600
-    lineHeight: 1.4
+    lineHeight: 1.5
+  figure:
+    fontFamily: "Roboto Mono, ui-monospace, Consolas, monospace"
+    fontSize: "18px"
+    fontWeight: 700
 rounded:
-  none: "0px"
+  none: "0"
 spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
-  xl: "20px"
+  xs: "6px"
+  sm: "10px"
+  md: "14px"
+  lg: "22px"
+  rail: "244px"
 components:
   button:
-    backgroundColor: "{colors.pane}"
-    textColor: "{colors.ink}"
+    backgroundColor: "{colors.white-sheet}"
+    textColor: "{colors.ink-black}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     height: "38px"
     padding: "0 16px"
-  button-hover:
-    backgroundColor: "{colors.pane-2}"
   button-primary:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.plate-ink}"
-    typography: "{typography.title}"
+    backgroundColor: "{colors.ink-black}"
+    textColor: "{colors.white-sheet}"
     rounded: "{rounded.none}"
     height: "38px"
-    padding: "0 16px"
+  button-hover:
+    backgroundColor: "{colors.sheet-wash}"
   panel:
-    backgroundColor: "{colors.pane}"
-    textColor: "{colors.ink}"
+    backgroundColor: "{colors.white-sheet}"
+    textColor: "{colors.ink-black}"
     rounded: "{rounded.none}"
-  plate:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.plate-ink}"
-    rounded: "{rounded.none}"
-    padding: "16px 18px"
   input:
-    backgroundColor: "{colors.pane}"
-    textColor: "{colors.ink}"
+    backgroundColor: "{colors.white-sheet}"
+    textColor: "{colors.ink-black}"
     rounded: "{rounded.none}"
     height: "40px"
     padding: "0 12px"
-  nav-item-current:
-    backgroundColor: "{colors.pane}"
-    textColor: "{colors.ink}"
-    typography: "{typography.title}"
-    padding: "9px 10px"
-  count-badge:
-    backgroundColor: "{colors.bad}"
-    textColor: "{colors.bad-on}"
-    padding: "3px 8px"
-  berth-cell-on:
-    backgroundColor: "{colors.ok}"
-    textColor: "{colors.ok-on}"
-    height: "40px"
-  berth-cell-off:
-    backgroundColor: "{colors.pane}"
-    height: "40px"
+  nav-rail:
+    backgroundColor: "{colors.ink-black}"
+    textColor: "{colors.white-sheet}"
+    width: "244px"
+  badge:
+    backgroundColor: "{colors.white-sheet}"
+    textColor: "{colors.safelight-red}"
 ---
 
 # Design System: Snackible CRM
 
 ## Overview
 
-**Creative North Star: "The Timetable Rack"**
+**Creative North Star: "The Darkroom Record"**
 
-A pocket airline timetable read as a rack of opaque panes on a lit bed. A saturated bed colour fills the room: rail, top bar, margins. Work lives in flat panes ruled in 2px, with no radius and no shadow. Everything is set at one size, 15px, so rank is never carried by scale. It is carried by weight, case, a rule, or reversal onto a plate. State is never a coloured pill; it is a mark in a fixed 18px cell that reads the same in every row.
+The CRM is a darkroom under a safelight. A red room fills the margins, the top bar and the sign-in; the work sits on white record sheets, each laid over a black under-sheet turned a fraction of a degree, like exposure sheets stacked on a bench. Heavy tall caps name things, Roboto carries prose, Roboto Mono carries figures, dates and codes. The look is dense, ruled and flat: black hairlines, dotted row dividers, zero radius.
 
-The system is a BD team's operating record, used before a call and right after one. Density is steady and tabular. Condensed uppercase labels, tracked wide, sit over plain gothic prose; numerals are tabular. Each screen carries exactly one reversed plate, which names the page or client.
-
-The look is themeable by construction. Seven themes (Goldenrod default, Paper, Carbon, Slate, Bottle green, Vermilion, Indigo) swap a fixed set of tokens on `:root[data-theme]`. The grammar never changes.
+State is never a new colour. How busy a month was is hatch density; a quiet or lapsed account is cross-hatched in red; a month before the client existed is dotted. Colour is red, black and white only, in all three themes (Safelight red room by default, White, Black); themes swap tokens and never change the grammar.
 
 **Key Characteristics:**
-- One type size (15px) everywhere; rank by weight, case, rule, reversal.
-- Opaque panes on a bed; 2px rules; radius 0; no elevation.
-- State is a mark in a fixed cell: filled ok, hollow skipped, struck lapsed.
-- Exactly one reversed plate per screen.
-- Themes swap tokens only.
+- Red room, white sheets, black under-sheets and black nav sheet.
+- Three type voices: tall caps for naming, Roboto for reading, mono for figures.
+- State as hatching in a fixed cell (solid, 1-4 hatch densities, red cross-hatch, dotted).
+- Zero radius everywhere; 2px control borders, 1px panel border, 3px and 6px structural rules.
+- Red, black, white only; no second accent.
 
 ## Colors
 
-Colour is a role set, not a palette. Values below are the default Goldenrod theme; other themes reassign the same names (see Theme System).
+Three themes, one palette logic: a room colour, a sheet colour, and black or white ink. Tokens are named by role in CSS (`--bed`, `--pane`, `--ink`, `--plate`, `--rail-bg`, `--bad`, `--badge`, `--ok`) and swap per theme.
 
 ### Primary
-- **Bed Goldenrod** (#e0a526): the lit ground behind rail, top bar, page margins and login. Ink on it is #1b1b1b (`bed-ink`), rules on it `bed-rule`.
-- **Plate Carbon** (#1b1b1b): the reversed plate, primary button, selected segment, AI source tag, note marker, selection highlight. Ink on it is Ivory (`plate-ink` #f6f0dc), secondary text `plate-muted` (#d3ccb0).
+- **Safelight Red** (#c8000f): the room (`--bed`) in the default theme: page background, top bar, sign-in surround. Also the lapsed/quiet state (`--bad`), the nav extent bar, the phone Add cell, and the badge text.
+- **Safelight Red Ink** (#b0000d): red text on white sheets (`--bad-ink`) for danger buttons, late figures and warning dt/dd, for contrast.
 
 ### Neutral
-- **Pane Ivory** (#f6f0dc): every working surface (panels, inputs, buttons, menus, current nav item).
-- **Pane Sand** (#ebe3c4, `pane-2`): table heads, group headings, composer, row hover, chip.plain.
-- **Ink** (#1b1b1b): text and 2px rules on panes. **Muted** (#4a463a): secondary text, hints, timestamps.
-
-### State
-- **Ok Green** (#1f6b46, `ok`; `ok-ink` for text; `ok-on` #ffffff for ink on a filled ok cell): ordered, active, purchase marker, completed step.
-- **Bad Vermilion** (#d9381e, `bad`; `bad-ink` #b02610 for text; `bad-on` #ffffff): lapsed strike, Unmatched count, danger text, late.
-- **Warn Amber** (#b8780c, `warn`; `warn-ink` #7a4a00): Watch status mark.
-- **Focus** (#1b1b1b): 3px outline, 2px offset.
+- **White Sheet** (#ffffff): panes (`--pane`), inputs, buttons, page and client head sheets; also the white-on-red text of the room.
+- **Sheet Wash** (#f2f2f2): second surface (`--pane-2`): row hover, composer, plain chips, table hover.
+- **Ink Black** (#0a0a0a): text, rules (`--rule`), the black under-sheets and primary buttons (`--plate`), the nav rail, and the "active/ok" fill (`--ok` is black here).
+- **Graphite** (#4a4a4a): muted text and sample values (`--muted`).
+- **Plate Muted** (#cfcfcf): muted text on black plates.
+- **Paper Room** (#ececec): the room in the White theme; the badge turns red there.
+- **Carbon theme**: room Ink Black, sheets Carbon Sheet (#161616), wash #202020, rules #6d6d6d, ink #f5f5f5; plate and rail invert to #f5f5f5; red lifts to #ff3b47 (ink #ff6670).
 
 ### Named Rules
-**The Tokens-Only Rule.** A theme may change only the 20 named tokens (bed, bed-ink, bed-rule, pane, pane-2, ink, muted, rule, plate, plate-ink, plate-muted, ok, ok-ink, ok-on, bad, bad-ink, bad-on, warn, warn-ink, focus). No component hardcodes a colour.
-
-**The State-Is-Not-Decoration Rule.** ok, bad and warn appear only as a state mark, a count, or state text. Never as a panel fill or an accent.
+**The Three Colours Rule.** Red, black and white only. A new state is a new hatch or a new mark, never a new hue.
+**The Red Is State Rule.** Red marks the room, lapsed/quiet/error, and the single Add affordance on phones. It is never decorative on a sheet.
+**The Token Swap Rule.** Components read `--bed`, `--pane`, `--ink`, `--plate`, `--rail-bg`, `--bad`, `--ok`, `--badge`; a theme changes tokens only.
 
 ## Typography
 
-**Label/Title Font:** Barlow Condensed (500-600, with Arial Narrow)
-**Body Font:** Libre Franklin (400-600, with Segoe UI, system-ui)
+**Display Font:** Big Shoulders (variable, opsz axis), with Arial Narrow fallback
+**Body Font:** Roboto 400/500/700, with Segoe UI and system-ui
+**Label/Mono Font:** Roboto Mono 400/500/700, with Consolas
 
-**Character:** Condensed caps feel stamped like a timetable header; Franklin gothic carries plain prose. Both at 15px, so the pairing differs by letterform, not size.
+**Character:** Condensed industrial caps against a plain humanist reader and a ledger mono. Names stand tall; prose stays quiet.
 
 ### Hierarchy
-- **Title** (Condensed 600, 15px, 1.4, 0.2em, uppercase): page and client name on the plate, brand name, login heading.
-- **Label** (Condensed 500-600, 15px, 0.09em, uppercase): nav, buttons, table heads, panel heads, field labels, chips, steps, month labels, menu titles, count badges.
-- **Body** (Franklin 400, 15px, 1.4, tabular numerals): prose, cell values, inputs. Plate subtitle line is capped at 72ch, lede at 80ch.
-- **Body strong** (Franklin 600, 15px): row names, fact keys, result titles.
+- **Display** (900, clamp 40px to 84px, 0.9): the client name on the client head, uppercase, balanced wrap.
+- **Headline** (900, clamp 34px to 56px, 0.95): page titles; sign-in title 34px.
+- **Title** (800, 22px): panel headings and empty states; attention-list names 21px; nav items 21px; rail brand 26px at 900.
+- **Label** (700-800, 17px, 0.06em, uppercase): table heads, field labels, buttons (18px, 17px small), chips, tabs, steps, badges, definition terms.
+- **Body** (400, 15px, 1.5): prose, table cells, hints; sentence case; page-head blurb capped at 72ch, lede at 80ch.
+- **Figure** (Roboto Mono 700, 18px; 24px lead; 20px result totals): money, counts, dates, codes, month numbers (12px in cells), sync note 13px. Tabular numerals are on globally.
 
 ### Named Rules
-**The One Size Rule.** Every element is 15px (`--size`). Never add a second size; rank with weight (400, 500, 600), case, a rule, or reversal.
-
-**The Sentence-Case Prose Rule.** Condensed is uppercase and tracked; where a label holds a sentence (plate subtitle, panel sub, theme note) it reverts to Franklin, no case transform, no tracking.
+**The Three Voices Rule.** Naming and labelling is tall caps; reading is Roboto; anything you could add up or look up is mono.
+**The Sentence-Case Prose Rule.** Where condensed caps host explanatory text (panel sub-lines, legend, page-head paragraph), reset to Roboto sentence case.
 
 ## Layout
 
-Desktop is a 232px rail on the bed plus a main column. The top bar is 64px, sticky, with a search up to 560px wide, a Colours button and a reversed Add. Content is centred in a 1360px max with 20px padding. Two-column screens split into a flexible column and a fixed 400px (overview) or 420px (client page) side column, collapsing to one column at 1100px. Gaps are 16px between panes and 8-12px inside; rows are 10px by 12px padded. Form pages cap at 940px.
+A two-column shell: a 244px black nav sheet floats sticky at left (16px inset, full height minus 32px), the main column holds a sticky 64px red top bar (white search up to 560px, sync note, white buttons, black Add) and a page capped at 1360px with 28px side padding. Content grids: overview two-col (fluid + 400px), client top (fluid + 360px), client body (fluid + 420px), review 1:1; all collapse to one column at 1100px. Rhythm is 6px (month cells), 10-14px (rows, padding), 16-22px (between sheets, 22px between panels).
 
-At 860px the rail disappears: a bottom tab bar (five cells on the bed, current cell an ivory pane, Add cell a reversed plate) takes over, controls grow to 44px, grids stack, tables hide `col-hide` columns. The type size does not change.
+At 860px and below the rail disappears, the top bar shows a logo mark, the page pads 12px (96px bottom), controls grow to 44px, grids go single-column, and a fixed black six-cell tab bar takes the bottom with a red Add cell. Month cells shrink to 34px with 3px gaps; mobile month labels drop to 12px.
 
 ## Elevation & Depth
 
-None. The system is flat. Depth is carried by the bed/pane contrast, 2px rules, and reversal. Menus (Add, Colours) are panes on a transparent scrim with a 2px rule; they do not cast shadows. The only inset shadow is the primary button hover (a 2px inner ring in `plate-ink`) and the construction of the Watch mark.
+Depth is paper on paper: a hybrid of a soft shadow and a physical under-sheet. Every `.panel`, page head, client head and the sign-in box lies on a black under-sheet drawn with a pseudo-element, offset down-right and rotated 0.35deg (panels) or 0.5deg (heads, sign-in). The head sheets settle into place on entry (0.5s ease-out), disabled under reduced motion.
+
+### Shadow Vocabulary
+- **Sheet shadow** (`box-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 18px 30px -20px rgba(0,0,0,0.7)`): panels, heads, rail, results list, menus, sticky action bar, result grid.
+- **Tab bar lift** (`0 -10px 24px -14px rgba(0,0,0,0.6)`): the phone tab bar.
 
 ### Named Rules
-**The Flat Rule.** No drop shadows, no blur, no gradients except the 2px diagonal strike that marks lapsed.
+**The Under-Sheet Rule.** A raised surface is a white sheet over a turned black sheet, not a bare drop shadow. Hard offset shadows are not part of this system; the black sheet is a layer, not a shadow.
+**The Settle Rule.** The only entrance motion is the head sheet settling (0.5s); fresh timeline rows fade 1.6s. Nothing shimmers; loading placeholders are plain blocks.
 
 ## Shapes
 
-Radius is 0 everywhere. Borders are 2px solid `rule` around panes, inputs, buttons, menus; rows inside panes divide with 1px dotted `rule`; sections inside a pane divide with a 2px or 1px solid rule. Primary buttons use a 3px border. Drop zones use a 2px dashed rule that turns solid on drag-over. Icons are Lucide at 16-24px with 1.8-2.4 stroke.
-
-### Named Rules
-**The Fixed-Cell Rule.** State marks are square cells with a 2px border: 18px in chips, 40px in the 12-month strip (32px on phones, 20px in the mini strip), 24px in the timeline. Filled `ok` means ordered or active. Hollow means skipped or new. A 2px diagonal strike in `bad` on a `bad` border means lapsed or quiet. Watch is a hollow cell with a `warn` inner square.
-
-**The One Plate Rule.** One reversed plate per screen: the page head or client head. Reversal elsewhere is limited to the primary button, a pressed toggle/segment, the Add tab, the AI source tag, and the current wizard step.
+Zero radius on every control, sheet, chip and cell. Borders carry the form: 2px on buttons, inputs, search, notices and menus; 1px on panels; 3px under panel and table heads and top of totals; 6px under the page and client head; dotted 1px between rows. Cells and state marks are square (18px chip mark, 44px berth cells).
 
 ## Components
 
 ### Buttons
-- **Shape:** square, 2px `rule` border, 38px high (40 in top bar, 34 small, 44 on phones), 0 16px padding, Label type.
-- **Default:** pane fill, ink text; hover `pane-2`.
-- **Primary:** plate fill, `plate-ink` text, 3px border, weight 600; hover adds a 2px inner ring.
-- **Quiet:** transparent, no border until hover. **Danger:** text in `bad-ink`. **Pressed/expanded:** ink fill, pane text.
-- **Disabled:** 45% opacity.
+- **Shape:** square, 38px high (34px small, 44px/40px on phones), 2px ink border, 16px side padding, 18px tall-caps label.
+- **Default:** white with ink text; hover shifts to the sheet wash.
+- **Primary:** black plate with white text; hover adds an inset 2px white ring.
+- **Quiet:** transparent, border appears on hover. **Danger:** red-ink text. **Pressed/expanded:** inverted ink fill. Disabled 45% opacity.
+- Focus: 3px outline, white on the red room, ink on sheets, 2px offset.
 
-### Panels
-Pane fill, 2px rule, no radius. Head row (min 46px) with a 2px bottom rule and a Label-weight-600 heading; body padded 14px 12px. Panels stack with a 16px gap.
+### Chips (status marks)
+An 18px square mark plus caps label. Active = solid black; watch = single 135deg hatch; lapsed = red border with red cross-hatch; new = hollow. A plain variant is a bordered wash tag without a mark.
 
-### Plate
-Plate fill, 16px 18px padding, 16px bottom margin; title in Title type, subline in plate-muted. The client plate carries code, quick buttons and a meta line.
+### Cards / Containers (panels)
+White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.
 
 ### Inputs / Fields
-Pane fill, 2px rule, 40px min height, 0 radius. Labels above in Label type weight 600, hints in muted. Focus draws the 3px `focus` outline. Textarea min 96px.
+White, 2px ink border, 40px minimum height, 12px padding, square. Labels above in tall caps, hints in graphite. Focus draws a 3px ink outline with no offset. Mono variant for codes and amounts.
 
 ### Navigation
-Rail items: Label type, 2px transparent border; hover shows the rule; current becomes an ivory pane with a rule and weight 600. Unmatched carries a `bad` count. The rail foot is separated by a 2px rule.
+Black rail with a white-ruled brand block; items are 21px tall caps with an 18px-padded row, hover washes 16% white, current page inverts to white on black. A 3px red extent bar under Clients, Leads and Unmatched shows relative size. Counts are white badges with red text. On phones, a black tab bar with 12px caps labels, inverted current tab, red Add cell.
 
 ### Berth strip (signature)
-Twelve fixed cells, one per month. Filled `ok` with the order count in `ok-on`; hollow for no order; struck for quiet months after 75 days since the last order. Month labels beneath in Label type, the current month bold and underlined. A legend of 16px cells explains marks. The mini variant (148px wide, 20px cells, no numbers) sits in list rows.
+Twelve month cells, 44px tall with 6px gaps and 2px ink border, each holding a white mono order count. Fill is load 1-4 against the client's busiest month (minimum 4): hatch periods 9px, 6px, 5px (thicker line), then solid black. Empty month = hollow; before the client existed = dotted faded border; quiet since last order past 75 days = red cross-hatch. A mini variant (156px, 20px cells) sits in lists. Month labels below in caps; the current month is bold and underlined 3px.
 
-### Status chip
-A Label-type word following an 18px cell: Active (filled ok), Watch (hollow with warn inner), Lapsed (struck), New (hollow). `chip.plain` is a boxed neutral tag.
-
-### Tables and rows
-Header row on `pane-2` with a 2px bottom rule; body rows divide with dotted rules, hover `pane-2`; numeric columns right-aligned and tabular.
-
-### Theme picker
-A Colours button in the top bar opens a menu of two-column swatches, each a three-block chipset (bed, pane, plate) with the theme name and a muted note. A check marks the current theme.
-
-## Theme System
-
-Themes are `:root[data-theme="<id>"]` blocks in `app/globals.css`, listed in `lib/themes.js`; only the 20 tokens above change. `app/layout.jsx` sets `data-theme="goldenrod"`; a `beforeInteractive` script reads `localStorage["crm-theme"]` and otherwise chooses Carbon when the OS prefers dark, else Goldenrod. `Shell.jsx` writes the choice to the root dataset and storage. `ok-on` defaults to white at `:root`; only Carbon overrides it (#07140d).
-
-| Theme | Bed | Pane | Plate |
-|---|---|---|---|
-| Goldenrod (default) | #e0a526 | #f6f0dc | #1b1b1b |
-| Paper | #e4e7ee | #ffffff | #14171f |
-| Carbon (dark) | #121212 | #1f1f1f | #f6f0dc |
-| Slate | #34414d | #e4e9ee | #17202a |
-| Bottle green | #1f6b46 | #f6f0dc | #14231b |
-| Vermilion | #c9321a | #f8f1e0 | #1d1613 |
-| Indigo | #1d2b63 | #f4f1e6 | #0c1230 |
-
-Carbon inverts the plate to ivory and lightens ok/bad/warn so they hold on dark panes.
-
-### Named Rules
-**The Same Grammar Rule.** A new theme is a new set of values for the 20 tokens and an entry in `lib/themes.js`. It never introduces a component rule.
+### Fact, timeline and tables
+Tables: caps heads over a 3px rule, dotted row dividers, wash hover. Timeline markers are 24px squares: black fill for notes, black ok fill for purchases. Fact rows are details with source tags (bordered caps; AI source in black plate).
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** set all text at 15px and rank by weight, case, rule, or reversal.
-- **Do** use 2px rules and 0 radius on every pane, control and menu.
-- **Do** show state as a mark in a fixed cell: filled ok, hollow skipped, struck lapsed.
-- **Do** put one reversed plate on each screen.
-- **Do** reference tokens (`var(--pane)`, `var(--rule)`) and test a new surface in at least Goldenrod and Carbon.
-- **Do** keep tabular numerals for counts, dates and totals.
+- **Do** put every raised surface on a white pane with the black under-sheet (turned 0.35 to 0.5deg) and the sheet shadow.
+- **Do** express new states as hatch patterns in the 18px mark or month cell, using ink or red only.
+- **Do** use Big Shoulders caps for names and labels, Roboto 15px for prose, Roboto Mono for figures.
+- **Do** keep radius at 0 and borders at 1px, 2px, 3px or 6px by role.
+- **Do** switch themes only by swapping tokens; check red-on-white uses `--bad-ink`.
 
 ### Don't:
-- **Don't** use grey SaaS cards, big KPI numbers, display type, or gradients.
-- **Don't** add a second type size, a radius, or a drop shadow.
-- **Don't** colour a panel with ok, bad or warn; they mark state only.
-- **Don't** put a literal colour in a component; add or change a theme token instead.
-- **Don't** give a theme its own component rule.
+- **Don't** introduce a second accent or any hue beyond red, black, white.
+- **Don't** use grey SaaS cards, rounded corners, hero metrics or gradients other than hatching.
+- **Don't** set prose in the condensed caps face; reset to Roboto sentence case.
+- **Don't** let red decorate; it means room, lapsed, error or Add.

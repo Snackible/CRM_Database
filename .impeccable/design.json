@@ -1,489 +1,130 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T11:34:43.270Z",
+  "generatedAt": "2026-10-27T00:00:00.000Z",
   "title": "Design System: Snackible CRM",
   "extensions": {
     "colorMeta": {
-      "bed": {
-        "role": "primary",
-        "displayName": "Bed Goldenrod",
-        "canonical": "#e0a526",
-        "tonalRamp": [
-          "#43320b",
-          "#705313",
-          "#9d741b",
-          "#c59121",
-          "#e4b040",
-          "#ebc572",
-          "#f3dba8",
-          "#faf2de"
-        ]
-      },
-      "plate": {
-        "role": "primary",
-        "displayName": "Plate Carbon",
-        "canonical": "#1b1b1b",
-        "tonalRamp": [
-          "#080808",
-          "#0e0e0e",
-          "#131313",
-          "#181818",
-          "#363636",
-          "#6b6b6b",
-          "#a4a4a4",
-          "#dddddd"
-        ]
-      },
-      "pane": {
-        "role": "neutral",
-        "displayName": "Pane Ivory",
-        "canonical": "#f6f0dc",
-        "tonalRamp": [
-          "#4a4842",
-          "#7b786e",
-          "#aca89a",
-          "#d8d3c2",
-          "#f7f2e0",
-          "#f9f5e8",
-          "#fbf9f1",
-          "#fefdfa"
-        ]
-      },
-      "pane-2": {
-        "role": "neutral",
-        "displayName": "Pane Sand",
-        "canonical": "#ebe3c4",
-        "tonalRamp": [
-          "#47443b",
-          "#767262",
-          "#a59f89",
-          "#cfc8ac",
-          "#ede6cb",
-          "#f2edd9",
-          "#f7f4e7",
-          "#fcfbf6"
-        ]
-      },
-      "ink": {
-        "role": "neutral",
-        "displayName": "Ink",
-        "canonical": "#1b1b1b",
-        "tonalRamp": [
-          "#080808",
-          "#0e0e0e",
-          "#131313",
-          "#181818",
-          "#363636",
-          "#6b6b6b",
-          "#a4a4a4",
-          "#dddddd"
-        ]
-      },
-      "muted": {
-        "role": "neutral",
-        "displayName": "Muted Umber",
-        "canonical": "#4a463a",
-        "tonalRamp": [
-          "#161511",
-          "#25231d",
-          "#343129",
-          "#413e33",
-          "#605c52",
-          "#89877f",
-          "#b7b5b0",
-          "#e4e3e1"
-        ]
-      },
-      "plate-ink": {
-        "role": "neutral",
-        "displayName": "Plate Ivory",
-        "canonical": "#f6f0dc",
-        "tonalRamp": [
-          "#4a4842",
-          "#7b786e",
-          "#aca89a",
-          "#d8d3c2",
-          "#f7f2e0",
-          "#f9f5e8",
-          "#fbf9f1",
-          "#fefdfa"
-        ]
-      },
-      "plate-muted": {
-        "role": "neutral",
-        "displayName": "Plate Muted",
-        "canonical": "#d3ccb0",
-        "tonalRamp": [
-          "#3f3d35",
-          "#6a6658",
-          "#948f7b",
-          "#bab49b",
-          "#d8d2b9",
-          "#e2decc",
-          "#edebdf",
-          "#f8f7f3"
-        ]
-      },
-      "ok": {
-        "role": "state",
-        "displayName": "Ok Green",
-        "canonical": "#1f6b46",
-        "tonalRamp": [
-          "#092015",
-          "#103623",
-          "#164b31",
-          "#1b5e3e",
-          "#3a7d5c",
-          "#6d9f87",
-          "#a5c4b5",
-          "#dde9e3"
-        ]
-      },
-      "bad": {
-        "role": "state",
-        "displayName": "Bad Vermilion",
-        "canonical": "#d9381e",
-        "tonalRamp": [
-          "#411109",
-          "#6d1c0f",
-          "#982715",
-          "#bf311a",
-          "#de5039",
-          "#e67e6d",
-          "#f0afa5",
-          "#f9e1dd"
-        ]
-      },
-      "bad-ink": {
-        "role": "state",
-        "displayName": "Bad Ink",
-        "canonical": "#b02610",
-        "tonalRamp": [
-          "#350b05",
-          "#581308",
-          "#7b1b0b",
-          "#9b210e",
-          "#b9402d",
-          "#cc7264",
-          "#dfa89f",
-          "#f3dedb"
-        ]
-      },
-      "warn": {
-        "role": "state",
-        "displayName": "Warn Amber",
-        "canonical": "#b8780c",
-        "tonalRamp": [
-          "#372404",
-          "#5c3c06",
-          "#815408",
-          "#a26a0b",
-          "#c18829",
-          "#d1a761",
-          "#e3c99e",
-          "#f4ebdb"
-        ]
-      },
-      "warn-ink": {
-        "role": "state",
-        "displayName": "Warn Ink",
-        "canonical": "#7a4a00",
-        "tonalRamp": [
-          "#251600",
-          "#3d2500",
-          "#553400",
-          "#6b4100",
-          "#8a601f",
-          "#a98959",
-          "#cab799",
-          "#ebe4d9"
-        ]
-      },
-      "focus": {
-        "role": "state",
-        "displayName": "Focus",
-        "canonical": "#1b1b1b",
-        "tonalRamp": [
-          "#080808",
-          "#0e0e0e",
-          "#131313",
-          "#181818",
-          "#363636",
-          "#6b6b6b",
-          "#a4a4a4",
-          "#dddddd"
-        ]
-      }
+      "safelight-red": { "role": "primary", "displayName": "Safelight Red", "canonical": "#c8000f", "tonalRamp": ["#2b0004", "#470007", "#64000a", "#820010", "#a3000d", "#c8000f", "#e8606b", "#f8c4c8"] },
+      "safelight-red-ink": { "role": "primary", "displayName": "Safelight Red Ink", "canonical": "#b0000d", "tonalRamp": ["#260003", "#3f0006", "#5a0009", "#78000b", "#970010", "#b0000d", "#d4515a", "#f3bcc0"] },
+      "white-sheet": { "role": "neutral", "displayName": "White Sheet", "canonical": "#ffffff", "tonalRamp": ["#4a4a4a", "#6d6d6d", "#8f8f8f", "#b0b0b0", "#cfcfcf", "#e4e4e4", "#f2f2f2", "#ffffff"] },
+      "sheet-wash": { "role": "neutral", "displayName": "Sheet Wash", "canonical": "#f2f2f2", "tonalRamp": ["#4a4a4a", "#6d6d6d", "#8f8f8f", "#b0b0b0", "#cfcfcf", "#e4e4e4", "#f2f2f2", "#ffffff"] },
+      "ink-black": { "role": "neutral", "displayName": "Ink Black", "canonical": "#0a0a0a", "tonalRamp": ["#0a0a0a", "#161616", "#202020", "#2e2e2e", "#4a4a4a", "#6d6d6d", "#8f8f8f", "#b8b8b8"] },
+      "graphite": { "role": "neutral", "displayName": "Graphite", "canonical": "#4a4a4a", "tonalRamp": ["#0a0a0a", "#202020", "#333333", "#4a4a4a", "#6d6d6d", "#8f8f8f", "#b8b8b8", "#e4e4e4"] },
+      "paper-room": { "role": "neutral", "displayName": "Paper Room", "canonical": "#ececec", "tonalRamp": ["#4a4a4a", "#6d6d6d", "#8f8f8f", "#b0b0b0", "#cfcfcf", "#dcdcdc", "#ececec", "#f8f8f8"] },
+      "carbon-red": { "role": "primary", "displayName": "Carbon Red", "canonical": "#ff3b47", "tonalRamp": ["#330004", "#59000a", "#800010", "#a60018", "#d11f2b", "#ff3b47", "#ff8a92", "#ffd0d3"] }
     },
     "typographyMeta": {
-      "label": {
-        "displayName": "Label",
-        "purpose": "Condensed caps, 15px, 0.09em: nav, buttons, table heads, field labels, chips."
-      },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Condensed 600, 15px, 0.2em: page and client name on the plate, brand."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Franklin 400, 15px, tabular numerals: prose and values."
-      },
-      "body-strong": {
-        "displayName": "Body strong",
-        "purpose": "Franklin 600, 15px: row names, fact keys."
-      }
+      "display": { "displayName": "Client Name", "purpose": "Client head only: tall heavy caps up to 84px." },
+      "headline": { "displayName": "Page Title", "purpose": "Page head titles in tall heavy caps." },
+      "title": { "displayName": "Panel Title", "purpose": "Panel headings, attention names, nav items." },
+      "label": { "displayName": "Label", "purpose": "17px tall caps for buttons, table heads, fields, chips, tabs, badges." },
+      "body": { "displayName": "Body", "purpose": "15px Roboto prose and table cells." },
+      "figure": { "displayName": "Figure", "purpose": "Roboto Mono for money, counts, dates and codes." }
     },
     "shadows": [
-      {
-        "name": "none",
-        "value": "none",
-        "purpose": "The system is flat; depth is bed/pane contrast and 2px rules."
-      },
-      {
-        "name": "primary-hover-ring",
-        "value": "inset 0 0 0 2px var(--plate-ink)",
-        "purpose": "Inner ring on primary button hover; not elevation."
-      }
+      { "name": "sheet-shadow", "value": "0 1px 0 rgba(0,0,0,0.25), 0 18px 30px -20px rgba(0,0,0,0.7)", "purpose": "Soft paper shadow under panels, heads, rail, menus." },
+      { "name": "tabbar-lift", "value": "0 -10px 24px -14px rgba(0,0,0,0.6)", "purpose": "Phone bottom tab bar." },
+      { "name": "under-sheet", "value": "pseudo-element: inset 7px -7px -8px 7px (heads 10px -10px -12px 12px), background plate, rotate 0.35deg (heads 0.5deg)", "purpose": "Black sheet beneath every panel and head." }
     ],
     "motion": [
-      {
-        "name": "fresh-row",
-        "value": "fresh 1.6s ease-out 1 (background pane-2 to transparent)",
-        "purpose": "Highlights a newly added timeline row; disabled under prefers-reduced-motion."
-      }
+      { "name": "settle", "value": "0.5s cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Head sheet settling onto its under-sheet; off under reduced motion." },
+      { "name": "fresh", "value": "1.6s ease-out", "purpose": "New timeline row fades from wash to clear." }
     ],
     "breakpoints": [
-      {
-        "name": "two-col-collapse",
-        "value": "1100px"
-      },
-      {
-        "name": "phone",
-        "value": "860px"
-      }
-    ],
-    "themes": [
-      {
-        "id": "goldenrod",
-        "name": "Goldenrod",
-        "note": "Default",
-        "bed": "#e0a526",
-        "pane": "#f6f0dc",
-        "plate": "#1b1b1b"
-      },
-      {
-        "id": "paper",
-        "name": "Paper",
-        "note": "Light",
-        "bed": "#e4e7ee",
-        "pane": "#ffffff",
-        "plate": "#14171f"
-      },
-      {
-        "id": "carbon",
-        "name": "Carbon",
-        "note": "Dark",
-        "bed": "#121212",
-        "pane": "#1f1f1f",
-        "plate": "#f6f0dc"
-      },
-      {
-        "id": "slate",
-        "name": "Slate",
-        "note": "Cool dark",
-        "bed": "#34414d",
-        "pane": "#e4e9ee",
-        "plate": "#17202a"
-      },
-      {
-        "id": "green",
-        "name": "Bottle green",
-        "note": "",
-        "bed": "#1f6b46",
-        "pane": "#f6f0dc",
-        "plate": "#14231b"
-      },
-      {
-        "id": "vermilion",
-        "name": "Vermilion",
-        "note": "",
-        "bed": "#c9321a",
-        "pane": "#f8f1e0",
-        "plate": "#1d1613"
-      },
-      {
-        "id": "indigo",
-        "name": "Indigo",
-        "note": "",
-        "bed": "#1d2b63",
-        "pane": "#f4f1e6",
-        "plate": "#0c1230"
-      }
-    ],
-    "themeTokens": [
-      "bed",
-      "bed-ink",
-      "bed-rule",
-      "pane",
-      "pane-2",
-      "ink",
-      "muted",
-      "rule",
-      "plate",
-      "plate-ink",
-      "plate-muted",
-      "ok",
-      "ok-ink",
-      "ok-on",
-      "bad",
-      "bad-ink",
-      "bad-on",
-      "warn",
-      "warn-ink",
-      "focus"
-    ],
-    "themeMechanism": "Tokens live in app/globals.css under :root[data-theme]; app/layout.jsx sets data-theme=goldenrod; a beforeInteractive script reads localStorage crm-theme (fallback: carbon if OS prefers dark, else goldenrod); components/Shell.jsx writes the choice."
+      { "name": "tablet", "value": "1100px" },
+      { "name": "phone", "value": "860px" },
+      { "name": "narrow", "value": "560px" }
+    ]
   },
   "components": [
     {
-      "name": "Button",
+      "name": "Default Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "Pane button with 2px rule; hover shifts to pane-2.",
-      "html": "<div class=\"ds-w\"><button class=\"ds-btn ds-lab\">Note</button></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-btn{height:38px;padding:0 16px;border:2px solid var(--rule);background:var(--pane);color:var(--ink);border-radius:0;cursor:pointer;font-size:15px}.ds-btn:hover{background:var(--pane-2)}.ds-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}"
+      "description": "White square button with a 2px ink border and tall-caps label.",
+      "html": "<button class=\"ds-btn\">Note</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border: 2px solid #0a0a0a; border-radius: 0; background: #fff; color: #0a0a0a; font: 800 18px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; } .ds-btn:hover { background: #f2f2f2; } .ds-btn:focus-visible { outline: 3px solid #0a0a0a; outline-offset: 2px; }"
     },
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Reversed on plate, 3px border, weight 600; hover adds an inner ring.",
-      "html": "<div class=\"ds-w\"><button class=\"ds-btnp ds-lab\">Add</button></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-btnp{height:38px;padding:0 16px;border:3px solid var(--rule);background:var(--plate);color:var(--plate-ink);border-radius:0;font-weight:800;font-size:15px;cursor:pointer}.ds-btnp:hover{box-shadow:inset 0 0 0 2px var(--plate-ink)}.ds-btnp:focus-visible{outline:3px solid var(--focus);outline-offset:2px}"
+      "description": "Black plate button for the one main action.",
+      "html": "<button class=\"ds-btn-primary\">Add</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border: 2px solid #0a0a0a; border-radius: 0; background: #0a0a0a; color: #fff; font: 800 18px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; } .ds-btn-primary:hover { box-shadow: inset 0 0 0 2px #fff; } .ds-btn-primary:focus-visible { outline: 3px solid #0a0a0a; outline-offset: 2px; }"
     },
     {
-      "name": "Input",
+      "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Pane field, 2px rule, 3px focus outline.",
-      "html": "<div class=\"ds-w\"><input class=\"ds-in\" placeholder=\"Search clients, people, facts, notes\"></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-in{width:280px;min-height:40px;padding:0 12px;border:2px solid var(--rule);border-radius:0;background:var(--pane);color:var(--ink);font:inherit}.ds-in:focus{outline:3px solid var(--focus);outline-offset:0}"
-    },
-    {
-      "name": "Plate",
-      "kind": "custom",
-      "refersTo": "plate",
-      "description": "The one reversed plate per screen: heading in wide-tracked caps, plain subline.",
-      "html": "<div class=\"ds-w\"><div class=\"ds-plate\"><div class=\"ds-h ds-lab\">Clients</div><p>Every account, with its twelve months.</p></div></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-plate{background:var(--plate);color:var(--plate-ink);padding:16px 18px}.ds-h{font-weight:800;letter-spacing:.2em}.ds-plate p{margin:4px 0 0;color:var(--plate-muted)}"
+      "description": "White square field with 2px ink border and a tall-caps label.",
+      "html": "<label class=\"ds-field\"><span>Client</span><input class=\"ds-input\" placeholder=\"Search\"></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 5px; font: 800 17px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a; } .ds-input { min-height: 40px; padding: 0 12px; border: 2px solid #0a0a0a; border-radius: 0; background: #fff; color: #0a0a0a; font: 400 15px Roboto, sans-serif; text-transform: none; letter-spacing: 0; } .ds-input:focus { outline: 3px solid #0a0a0a; outline-offset: 0; }"
     },
     {
       "name": "Panel",
       "kind": "card",
       "refersTo": "panel",
-      "description": "Opaque pane with a ruled head and dotted row rules.",
-      "html": "<div class=\"ds-w\"><div class=\"ds-panel\"><div class=\"ds-ph ds-lab\">Purchases</div><div class=\"ds-row\">Order 1142<span>12 Sep</span></div><div class=\"ds-row\">Order 1138<span>02 Sep</span></div></div></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-panel{width:320px;background:var(--pane);border:2px solid var(--rule)}.ds-ph{padding:9px 12px;border-bottom:2px solid var(--rule);font-weight:800}.ds-row{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px dotted var(--rule)}.ds-row:last-child{border-bottom:0}"
+      "description": "White record sheet on a turned black under-sheet.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\">Orders</div><div class=\"ds-panel-body\">Twelve rows of figures.</div></section>",
+      "css": ".ds-panel { position: relative; isolation: isolate; margin: 8px 10px 14px 0; background: #fff; border: 1px solid #0a0a0a; color: #0a0a0a; box-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 18px 30px -20px rgba(0,0,0,0.7); font: 400 15px/1.5 Roboto, sans-serif; } .ds-panel::before { content: ''; position: absolute; inset: 7px -7px -8px 7px; z-index: -1; background: #0a0a0a; transform: rotate(0.35deg); transform-origin: 0 100%; } .ds-panel-head { padding: 10px 14px 8px; border-bottom: 3px solid #0a0a0a; font: 800 22px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; } .ds-panel-body { padding: 14px; }"
     },
     {
-      "name": "Nav item",
-      "kind": "nav",
-      "refersTo": "nav-item-current",
-      "description": "Rail item on the bed; the current one becomes an ivory pane with a rule. Count badge in bad.",
-      "html": "<div class=\"ds-w\"><nav class=\"ds-nav\"><a class=\"ds-lab\">Overview</a><a class=\"ds-lab ds-cur\">Clients</a><a class=\"ds-lab\">Unmatched<span class=\"ds-cnt\">3</span></a></nav></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-nav{display:flex;flex-direction:column;gap:4px;width:200px;padding:14px;background:var(--bed);color:var(--bed-ink)}.ds-nav a{display:flex;align-items:center;padding:9px 10px;border:2px solid transparent}.ds-nav a:hover{border-color:var(--bed-rule)}.ds-nav a.ds-cur{background:var(--pane);color:var(--ink);border-color:var(--rule);font-weight:800}.ds-cnt{margin-left:auto;min-width:24px;padding:3px 8px;background:var(--bad);color:var(--bad-on);font-weight:700;text-align:center;line-height:1.1}"
-    },
-    {
-      "name": "Status chip",
+      "name": "Status Chips",
       "kind": "chip",
-      "refersTo": "berth-cell-on",
-      "description": "State word after an 18px fixed cell: filled ok, warn inner square, struck, hollow.",
-      "html": "<div class=\"ds-w\"><div class=\"ds-chips\"><span class=\"ds-chip ds-lab ds-a\">Active</span><span class=\"ds-chip ds-lab ds-wt\">Watch</span><span class=\"ds-chip ds-lab ds-l\">Lapsed</span><span class=\"ds-chip ds-lab ds-n\">New</span></div></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-chips{display:flex;gap:18px;background:var(--pane);padding:12px;border:2px solid var(--rule)}.ds-chip{display:inline-flex;align-items:center;gap:8px;font-weight:700}.ds-chip:before{content:'';width:18px;height:18px;border:2px solid currentColor}.ds-a:before{background:var(--ok);border-color:var(--ok)}.ds-wt:before{border-color:var(--warn);box-shadow:inset 0 0 0 3px var(--pane),inset 0 0 0 20px var(--warn)}.ds-l:before{border-color:var(--bad);background:linear-gradient(to top right,transparent calc(50% - 1px),var(--bad) calc(50% - 1px),var(--bad) calc(50% + 1px),transparent calc(50% + 1px))}"
+      "refersTo": "chip",
+      "description": "Square hatched mark plus caps label: active, watch, lapsed, new.",
+      "html": "<span class=\"ds-chip active\">Active</span> <span class=\"ds-chip watch\">Watch</span> <span class=\"ds-chip lapsed\">Lapsed</span> <span class=\"ds-chip new\">New</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 8px; margin-right: 14px; font: 800 17px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a; } .ds-chip::before { content: ''; width: 18px; height: 18px; border: 2px solid currentColor; } .ds-chip.active::before { background: #0a0a0a; } .ds-chip.watch::before { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 5px); } .ds-chip.lapsed::before { border-color: #c8000f; background: repeating-linear-gradient(45deg, #c8000f 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, #c8000f 0 2px, transparent 2px 5px); }"
     },
     {
-      "name": "Berth strip",
-      "kind": "custom",
-      "refersTo": "berth-cell-on",
-      "description": "Twelve fixed monthly cells: filled with order count, hollow skipped, struck lapsed; month labels below.",
-      "html": "<div class=\"ds-w\"><div class=\"ds-pane\"><div class=\"ds-berth\"><span class=\"ds-c on\">2</span><span class=\"ds-c on\">1</span><span class=\"ds-c \"></span><span class=\"ds-c on\">3</span><span class=\"ds-c on\">1</span><span class=\"ds-c \"></span><span class=\"ds-c on\">2</span><span class=\"ds-c on\">1</span><span class=\"ds-c on\">1</span><span class=\"ds-c \"></span><span class=\"ds-c st\"></span><span class=\"ds-c st\"></span></div><div class=\"ds-mon ds-lab\"><span>O</span><span>N</span><span>D</span><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span class=\"now\">S</span></div></div></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-pane{width:560px;background:var(--pane);border:2px solid var(--rule);padding:14px 12px 8px}.ds-berth,.ds-mon{display:grid;grid-template-columns:repeat(12,1fr);gap:8px}.ds-c{height:40px;border:2px solid var(--rule);display:grid;place-items:center;font:700 15px/1 'Barlow Condensed',sans-serif}.ds-c.on{background:var(--ok);border-color:var(--ok);color:var(--ok-on)}.ds-c.st{border-color:var(--bad);color:transparent;background:linear-gradient(to top right,transparent calc(50% - 1px),var(--bad) calc(50% - 1px),var(--bad) calc(50% + 1px),transparent calc(50% + 1px))}.ds-mon{margin-top:8px;text-align:center;color:var(--muted)}.ds-mon .now{color:var(--ink);font-weight:800;text-decoration:underline}"
-    },
-    {
-      "name": "Theme swatch",
+      "name": "Berth Strip",
       "kind": "custom",
       "refersTo": "panel",
-      "description": "Theme picker row: three-block chipset (bed, pane, plate) with name.",
-      "html": "<div class=\"ds-w\"><div class=\"ds-sw\"><span class=\"ds-chipset\"><i style=\"background:#e0a526\"></i><i style=\"background:#f6f0dc\"></i><i style=\"background:#1b1b1b\"></i></span><span class=\"ds-lab\" style=\"font-weight:700\">Goldenrod</span></div></div>",
-      "css": ".ds-w{--bed:#e0a526;--bed-ink:#1b1b1b;--bed-rule:#1b1b1b;--pane:#f6f0dc;--pane-2:#ebe3c4;--ink:#1b1b1b;--muted:#4a463a;--rule:#1b1b1b;--plate:#1b1b1b;--plate-ink:#f6f0dc;--plate-muted:#d3ccb0;--ok:#1f6b46;--ok-on:#fff;--bad:#d9381e;--bad-on:#fff;--bad-ink:#b02610;--warn:#b8780c;--focus:#1b1b1b;font:400 15px/1.4 'Libre Franklin','Segoe UI',system-ui,sans-serif;color:var(--ink)}.ds-lab{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.09em;text-transform:uppercase;font-weight:600}.ds-sw{display:flex;align-items:center;gap:10px;padding:6px;width:200px;border:2px solid var(--rule);background:var(--pane-2)}.ds-chipset{display:grid;grid-template-columns:22px 14px 10px;height:28px;border:2px solid var(--rule)}.ds-chipset i{display:block}"
+      "description": "Twelve month cells: hatch density 1-4 for order load, red cross-hatch for quiet, dotted for before the client existed.",
+      "html": "<div class=\"ds-berth\"><span class=\"ds-cell pre\"></span><span class=\"ds-cell off\"></span><span class=\"ds-cell l1\"><b>1</b></span><span class=\"ds-cell l2\"><b>2</b></span><span class=\"ds-cell l3\"><b>3</b></span><span class=\"ds-cell l4\"><b>6</b></span><span class=\"ds-cell struck\"></span></div>",
+      "css": ".ds-berth { display: grid; grid-template-columns: repeat(7, 44px); gap: 6px; padding: 14px; background: #fff; } .ds-cell { position: relative; height: 44px; border: 2px solid #0a0a0a; display: grid; place-items: end start; font: 700 12px/1 'Roboto Mono', monospace; overflow: hidden; } .ds-cell b { margin: 2px; padding: 1px 4px; background: #fff; color: #0a0a0a; font-size: 12px; } .ds-cell.pre { border-style: dotted; border-color: rgba(10,10,10,0.55); } .ds-cell.l1 { background: repeating-linear-gradient(135deg, #0a0a0a 0 2px, transparent 2px 9px); } .ds-cell.l2 { background: repeating-linear-gradient(135deg, #0a0a0a 0 2px, transparent 2px 6px); } .ds-cell.l3 { background: repeating-linear-gradient(135deg, #0a0a0a 0 3px, transparent 3px 5px); } .ds-cell.l4 { background: #0a0a0a; } .ds-cell.struck { border-color: #c8000f; background: repeating-linear-gradient(45deg, #c8000f 0 2px, transparent 2px 7px), repeating-linear-gradient(-45deg, #c8000f 0 2px, transparent 2px 7px); }"
+    },
+    {
+      "name": "Nav Rail",
+      "kind": "nav",
+      "refersTo": "nav-rail",
+      "description": "Black nav sheet with caps items, inverted current page, white count badge and red extent bar.",
+      "html": "<nav class=\"ds-rail\"><a href=\"#\" aria-current=\"page\">Overview</a><a href=\"#\">Clients<i class=\"ds-extent\"></i></a><a href=\"#\">Unmatched<span class=\"ds-badge\">4</span></a></nav>",
+      "css": ".ds-rail { width: 244px; padding: 20px 0; background: #0a0a0a; color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 18px 30px -20px rgba(0,0,0,0.7); } .ds-rail a { position: relative; display: flex; align-items: center; padding: 11px 18px 13px; color: inherit; text-decoration: none; font: 800 21px 'Big Shoulders', 'Arial Narrow', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; } .ds-rail a:hover { background: rgba(255,255,255,0.16); } .ds-rail a[aria-current='page'] { background: #fff; color: #0a0a0a; } .ds-extent { position: absolute; left: 18px; bottom: 5px; width: 90px; height: 3px; background: #c8000f; } .ds-badge { margin-left: auto; min-width: 24px; padding: 2px 8px; background: #fff; color: #c8000f; font-size: 17px; text-align: center; }"
     }
   ],
   "narrative": {
-    "northStar": "The Timetable Rack",
-    "overview": "A pocket airline timetable read as a rack of opaque panes on a lit bed. A saturated bed colour fills the room: rail, top bar, margins. Work lives in flat panes ruled in 2px, with no radius and no shadow. Everything is set at one size, 15px, so rank is never carried by scale. It is carried by weight, case, a rule, or reversal onto a plate. State is never a coloured pill; it is a mark in a fixed 18px cell that reads the same in every row.\n\nThe system is a BD team's operating record, used before a call and right after one. Density is steady and tabular. Condensed uppercase labels, tracked wide, sit over plain gothic prose; numerals are tabular. Each screen carries exactly one reversed plate, which names the page or client.\n\nThe look is themeable by construction. Seven themes (Goldenrod default, Paper, Carbon, Slate, Bottle green, Vermilion, Indigo) swap a fixed set of tokens on :root[data-theme]. The grammar never changes.",
+    "northStar": "The Darkroom Record",
+    "overview": "The CRM is a darkroom under a safelight. A red room fills the margins, the top bar and the sign-in; the work sits on white record sheets, each laid over a black under-sheet turned a fraction of a degree, like exposure sheets stacked on a bench. Heavy tall caps name things, Roboto carries prose, Roboto Mono carries figures, dates and codes. The look is dense, ruled and flat: black hairlines, dotted row dividers, zero radius.\n\nState is never a new colour. How busy a month was is hatch density; a quiet or lapsed account is cross-hatched in red; a month before the client existed is dotted. Colour is red, black and white only, in all three themes (Safelight red room by default, White, Black); themes swap tokens and never change the grammar.",
     "keyCharacteristics": [
-      "One type size (15px) everywhere; rank by weight, case, rule, reversal.",
-      "Opaque panes on a bed; 2px rules; radius 0; no elevation.",
-      "State is a mark in a fixed cell: filled ok, hollow skipped, struck lapsed.",
-      "Exactly one reversed plate per screen.",
-      "Themes swap tokens only."
+      "Red room, white sheets, black under-sheets and black nav sheet.",
+      "Three type voices: tall caps for naming, Roboto for reading, mono for figures.",
+      "State as hatching in a fixed cell (solid, 1-4 hatch densities, red cross-hatch, dotted).",
+      "Zero radius everywhere; 2px control borders, 1px panel border, 3px and 6px structural rules.",
+      "Red, black, white only; no second accent."
     ],
     "rules": [
-      {
-        "name": "The Tokens-Only Rule",
-        "body": "A theme may change only the 20 named tokens (bed, bed-ink, bed-rule, pane, pane-2, ink, muted, rule, plate, plate-ink, plate-muted, ok, ok-ink, ok-on, bad, bad-ink, bad-on, warn, warn-ink, focus). No component hardcodes a colour.",
-        "section": "colors"
-      },
-      {
-        "name": "The State-Is-Not-Decoration Rule",
-        "body": "ok, bad and warn appear only as a state mark, a count, or state text. Never as a panel fill or an accent.",
-        "section": "colors"
-      },
-      {
-        "name": "The One Size Rule",
-        "body": "Every element is 15px (--size). Never add a second size; rank with weight (400, 500, 600), case, a rule, or reversal.",
-        "section": "typography"
-      },
-      {
-        "name": "The Sentence-Case Prose Rule",
-        "body": "Condensed is uppercase and tracked; where a label holds a sentence (plate subtitle, panel sub, theme note) it reverts to Franklin, no case transform, no tracking.",
-        "section": "typography"
-      },
-      {
-        "name": "The Flat Rule",
-        "body": "No drop shadows, no blur, no gradients except the 2px diagonal strike that marks lapsed.",
-        "section": "elevation"
-      },
-      {
-        "name": "The Fixed-Cell Rule",
-        "body": "State marks are square cells with a 2px border: 18px in chips, 40px in the 12-month strip (32px on phones, 20px in the mini strip), 24px in the timeline. Filled ok means ordered or active. Hollow means skipped or new. A 2px diagonal strike in bad on a bad border means lapsed or quiet. Watch is a hollow cell with a warn inner square.",
-        "section": "shapes"
-      },
-      {
-        "name": "The One Plate Rule",
-        "body": "One reversed plate per screen: the page head or client head. Reversal elsewhere is limited to the primary button, a pressed toggle/segment, the Add tab, the AI source tag, and the current wizard step.",
-        "section": "shapes"
-      },
-      {
-        "name": "The Same Grammar Rule",
-        "body": "A new theme is a new set of values for the 20 tokens and an entry in lib/themes.js. It never introduces a component rule.",
-        "section": "theme-system"
-      }
+      { "name": "The Three Colours Rule", "body": "Red, black and white only. A new state is a new hatch or a new mark, never a new hue.", "section": "colors" },
+      { "name": "The Red Is State Rule", "body": "Red marks the room, lapsed/quiet/error, and the single Add affordance on phones. It is never decorative on a sheet.", "section": "colors" },
+      { "name": "The Token Swap Rule", "body": "Components read --bed, --pane, --ink, --plate, --rail-bg, --bad, --ok, --badge; a theme changes tokens only.", "section": "colors" },
+      { "name": "The Three Voices Rule", "body": "Naming and labelling is tall caps; reading is Roboto; anything you could add up or look up is mono.", "section": "typography" },
+      { "name": "The Sentence-Case Prose Rule", "body": "Where condensed caps host explanatory text (panel sub-lines, legend, page-head paragraph), reset to Roboto sentence case.", "section": "typography" },
+      { "name": "The Under-Sheet Rule", "body": "A raised surface is a white sheet over a turned black sheet, not a bare drop shadow. Hard offset shadows are not part of this system; the black sheet is a layer, not a shadow.", "section": "elevation" },
+      { "name": "The Settle Rule", "body": "The only entrance motion is the head sheet settling (0.5s); fresh timeline rows fade 1.6s. Nothing shimmers; loading placeholders are plain blocks.", "section": "elevation" }
     ],
     "dos": [
-      "Do set all text at 15px and rank by weight, case, rule, or reversal.",
-      "Do use 2px rules and 0 radius on every pane, control and menu.",
-      "Do show state as a mark in a fixed cell: filled ok, hollow skipped, struck lapsed.",
-      "Do put one reversed plate on each screen.",
-      "Do reference tokens (var(--pane), var(--rule)) and test a new surface in at least Goldenrod and Carbon.",
-      "Do keep tabular numerals for counts, dates and totals."
+      "Do put every raised surface on a white pane with the black under-sheet (turned 0.35 to 0.5deg) and the sheet shadow.",
+      "Do express new states as hatch patterns in the 18px mark or month cell, using ink or red only.",
+      "Do use Big Shoulders caps for names and labels, Roboto 15px for prose, Roboto Mono for figures.",
+      "Do keep radius at 0 and borders at 1px, 2px, 3px or 6px by role.",
+      "Do switch themes only by swapping tokens; check red-on-white uses --bad-ink."
     ],
     "donts": [
-      "Don't use grey SaaS cards, big KPI numbers, display type, or gradients.",
-      "Don't add a second type size, a radius, or a drop shadow.",
-      "Don't colour a panel with ok, bad or warn; they mark state only.",
-      "Don't put a literal colour in a component; add or change a theme token instead.",
-      "Don't give a theme its own component rule."
+      "Don't introduce a second accent or any hue beyond red, black, white.",
+      "Don't use grey SaaS cards, rounded corners, hero metrics or gradients other than hatching.",
+      "Don't set prose in the condensed caps face; reset to Roboto sentence case.",
+      "Don't let red decorate; it means room, lapsed, error or Add."
     ]
   }
 }

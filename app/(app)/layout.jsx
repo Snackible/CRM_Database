@@ -15,7 +15,7 @@ export default async function AppLayout({ children }) {
     after(() => syncIfDue("Automatic sync").catch((e) => console.error("Automatic sheet sync failed:", e.message)));
   }
   return (
-    <Shell user={account?.name ?? ""} role={account?.role ?? "b2b"} unmatched={counts.unmatched} sample={counts.sample}>
+    <Shell user={account?.name ?? ""} role={account?.role ?? "b2b"} unmatched={counts.unmatched} sample={counts.sample} extent={{ clients: counts.clients, leads: counts.leads, unmatched: counts.unmatched }}>
       {children}
     </Shell>
   );

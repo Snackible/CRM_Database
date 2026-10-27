@@ -181,6 +181,9 @@ test("a PO number in the buyer name is ignored for matching, but never changes t
   assert.equal(strip("SCOOTSY LOGISTICS PRIVATE LIMITED FC5PO345070").name, "SCOOTSY LOGISTICS PRIVATE LIMITED");
   assert.equal(strip("Sweet Tooth Cafe").code, null);
   assert.equal(strip("Cafe 24").name, "Cafe 24"); // too short to be a PO number
+  assert.deepEqual(strip("Big Basket po no.-IRA41639028"), { name: "Big Basket po no", code: "IRA41639028" }); // code joined by punctuation
+  assert.deepEqual(strip("Reliance Retail Limited ‭5113573091‬"), { name: "Reliance Retail Limited", code: "5113573091" }); // hidden direction marks
+  assert.equal(looseNameKey(strip("Big Basket po no.-IRA41639028").name), "bigbasket");
   assert.equal(strip("AB12345").name, "AB12345"); // nothing left to be the name
   const map = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref" };
   const a = readRow({ PO: "ZEPTO PRIVATE LIMITED P1111111", "Order Value": "100", "Ref No": "R1" }, map, { stripPoCodes: true });

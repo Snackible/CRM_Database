@@ -79,36 +79,49 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
 
       {error && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
 
-      <section className="panel rhythm" aria-label="Ordering rhythm">
-        <div className="panel-head">
-          <h2>Ordering, last 12 months</h2>
-          <span className="legend">
-            <span><i className="f" />Ordered</span><span><i />Skipped</span><span><i className="x" />Lapsed</span>
-          </span>
-        </div>
-        <BerthStrip client={client} labels />
-        <div className="rhythm-line">
-          <span><b>{money(client.revenue)}</b> in 12 months</span>
-          <span><b>{client.orderCount}</b> {client.orderCount === 1 ? "order" : "orders"}</span>
-          {client.lastOrder ? <span>Last order <b>{dateLabel(client.lastOrder)}</b>, {agoLabel(client.daysSince)}</span> : <span>No orders yet</span>}
-          {client.usualGap ? <span>Usually every <b>{client.usualGap} days</b></span> : null}
-          {quiet && client.usualGap ? <span className="late"><b>{Math.max(0, client.daysSince - client.usualGap)} days</b> overdue</span> : null}
-        </div>
-      </section>
+      <div className="cp-top">
+        <div>
+          <section className="panel rhythm" aria-label="Ordering rhythm">
+            <div className="panel-head">
+              <h2>Ordering, last 12 months</h2>
+              <span className="legend">
+                <span><i className="f" />Ordered</span><span><i />Skipped</span><span><i className="x" />Lapsed</span>
+              </span>
+            </div>
+            <BerthStrip client={client} labels />
+            <div className="rhythm-line">
+              {client.lastOrder ? <span>Last order <b>{dateLabel(client.lastOrder)}</b>, {agoLabel(client.daysSince)}</span> : <span>No orders yet</span>}
+              {client.usualGap ? <span>Usually every <b>{client.usualGap} days</b></span> : null}
+              {quiet && client.usualGap ? <span className="late"><b>{Math.max(0, client.daysSince - client.usualGap)} days</b> overdue</span> : null}
+            </div>
+          </section>
 
-      {insights.length > 0 && (
-        <section className="panel" aria-labelledby="ins-h">
-          <div className="panel-head"><h2 id="ins-h">Insights</h2><span className="sub">Worked out from orders and notes</span></div>
-          <dl className="client-insights">
-            {insights.map((i) => (
-              <div key={i.label} className={i.tone === "bad" ? "bad" : undefined}>
-                <dt>{i.label}</dt>
-                <dd>{i.text}</dd>
-              </div>
-            ))}
+          {insights.length > 0 && (
+            <section className="panel" aria-labelledby="ins-h">
+              <div className="panel-head"><h2 id="ins-h">Insights</h2><span className="sub">Worked out from orders and notes</span></div>
+              <dl className="client-insights">
+                {insights.map((i) => (
+                  <div key={i.label} className={i.tone === "bad" ? "bad" : undefined}>
+                    <dt>{i.label}</dt>
+                    <dd>{i.text}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+        </div>
+
+        <section className="panel figures" aria-labelledby="fig-h">
+          <div className="panel-head"><h2 id="fig-h">Twelve months</h2></div>
+          <dl className="fig-list">
+            <div className="lead"><dt>Revenue</dt><dd>{money(client.revenue)}</dd></div>
+            <div><dt>Orders</dt><dd>{client.orderCount}</dd></div>
+            {client.orderCount > 0 && <div><dt>Average order</dt><dd>{money(client.revenue / client.orderCount)}</dd></div>}
+            {client.usualGap ? <div><dt>Usual gap</dt><dd>{client.usualGap} days</dd></div> : null}
+            {client.lastOrder ? <div><dt>Last order</dt><dd>{dateLabel(client.lastOrder)}</dd></div> : null}
           </dl>
         </section>
-      )}
+      </div>
 
       <div className="cp-grid">
         <div>

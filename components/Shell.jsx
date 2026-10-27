@@ -19,7 +19,7 @@ function active(pathname, href) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Shell({ children, user, role = "b2b", unmatched = 0, sample = 0 }) {
+export default function Shell({ children, user, role = "b2b", unmatched = 0, sample = 0, extent = {} }) {
   const pathname = usePathname();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -27,22 +27,26 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
-  const [theme, setThemeState] = useState("paper");
+  const [theme, setThemeState] = useState("safelight");
   const [syncing, setSyncing] = useState(false);
   const [syncNote, setSyncNote] = useState("");
   const inputRef = useRef(null);
 
+  // A short bar under a nav item shows how big that section is, against the biggest of the three.
+  const biggest = Math.max(1, extent.clients ?? 0, extent.leads ?? 0, extent.unmatched ?? 0);
+  const bar = (n) => (n ? `${Math.max(6, Math.round((n / biggest) * 100))}%` : undefined);
+
   const NAV = [
-    { href: "/", label: "Overview", icon: LayoutDashboard },
-    { href: "/clients", label: "Clients", icon: Users },
-    { href: "/leads", label: "Leads", icon: Target },
+    { href: "/", label: "Overview", short: "Home", icon: LayoutDashboard },
+    { href: "/clients", label: "Clients", icon: Users, extent: bar(extent.clients) },
+    { href: "/leads", label: "Leads", icon: Target, extent: bar(extent.leads) },
     { href: "/insights", label: "Insights", icon: Lightbulb },
-    { href: "/unmatched", label: "Unmatched", icon: Unlink, count: unmatched },
+    { href: "/unmatched", label: "Unmatched", icon: Unlink, count: unmatched, extent: bar(extent.unmatched) },
     { href: "/imports", label: "Imports & backup", short: "Imports", icon: DatabaseBackup },
   ];
 
   useEffect(() => {
-    setThemeState(document.documentElement.dataset.theme || "paper");
+    setThemeState(document.documentElement.dataset.theme || "safelight");
   }, []);
 
   function chooseTheme(id) {
@@ -133,6 +137,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
               <n.icon size={19} strokeWidth={1.9} aria-hidden="true" />
               {n.label}
               {n.count ? <span className="count" aria-label={`${n.count} waiting`}>{n.count}</span> : null}
+              {n.extent && <i className="extent" style={{ width: n.extent }} aria-hidden="true" />}
             </Link>
           ))}
         </nav>
