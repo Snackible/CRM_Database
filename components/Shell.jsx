@@ -228,7 +228,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
                     <span style={{ background: t.bed }} /><span style={{ background: t.pane }} /><span style={{ background: t.plate }} />
                   </span>
                   <span className="nm"><b>{t.name}</b>{t.note ? <small>{t.note}</small> : null}</span>
-                  {theme === t.id && <Check size={20} strokeWidth={2.6} aria-hidden="true" style={{ marginLeft: "auto" }} />}
+                  {theme === t.id && <Check size={16} strokeWidth={2.6} aria-hidden="true" style={{ marginLeft: "auto" }} />}
                 </button>
               ))}
             </div>
