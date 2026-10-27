@@ -379,7 +379,11 @@ svg { flex: none; }
 .sugg .btns { display: flex; gap: 6px; }
 .seg { display: inline-flex; border: 2px solid var(--rule); background: var(--pane); }
 .seg button { height: 38px; padding: 0 14px; border: 0; background: transparent; color: var(--ink); font: 800 18px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; }
-.seg button + button { border-left: 2px solid var(--rule); }
+.seg button + button, .seg a + a { border-left: 2px solid var(--rule); }
+.seg a { display: inline-flex; align-items: center; height: 38px; padding: 0 14px; color: var(--ink); text-decoration: none; font: 800 18px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; }
+.seg a:hover { background: var(--pane-2); }
+.seg a[aria-current="true"] { background: var(--plate); color: var(--plate-ink); }
+.toolbar .sub-lab { color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--plate); color: var(--plate-ink); }
 
 .login { min-height: 100dvh; display: grid; place-items: center; background: var(--bed); padding: 24px; isolation: isolate; }
@@ -456,6 +460,8 @@ svg { flex: none; }
   .lines td.wide { grid-column: 1 / -1; }
   .quick .btn { flex: 1 1 calc(50% - 8px); }
   .toolbar .input, .toolbar .select { max-width: none; flex: 1 1 100%; }
+  .seg { flex-wrap: wrap; }
+  .seg a { height: 40px; padding: 0 10px; }
   .swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -474,3 +480,7 @@ svg { flex: none; }
   .tabbar a, .tabbar button { font-size: 12px; letter-spacing: 0; min-width: 0; padding-left: 0; padding-right: 0; }
   .berth-months span { font-size: 12px; letter-spacing: 0; overflow: hidden; }
 }
+
+.toolbar .seg { flex-wrap: wrap; }
+.toolbar .seg a { height: 34px; padding: 0 10px; font-size: 16px; white-space: nowrap; }
+.toolbar .sub-lab { flex: 0 0 100%; margin-bottom: -4px; }

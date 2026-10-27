@@ -6,8 +6,28 @@ import { BerthStrip, StatusChip } from "@/components/Berth";
 
 export const metadata = { title: "Overview · Snackible CRM" };
 
-export default async function Overview() {
-  const o = await overview();
+const SORTS = [
+  ["recent", "Most recent"],
+  ["revenue", "Biggest"],
+  ["quiet", "Longest quiet"],
+  ["overdue", "Most overdue"],
+  ["orders", "Most orders"],
+  ["name", "Name"],
+];
+const SIZES = [12, 50, 200];
+const DAYS = [30, 45, 75, 90, 180];
+
+export default async function Overview({ searchParams }) {
+  const sp = await searchParams;
+  const sort = SORTS.some(([k]) => k === sp.sort) ? sp.sort : "recent";
+  const limit = SIZES.includes(Number(sp.n)) ? Number(sp.n) : 12;
+  const days = DAYS.includes(Number(sp.days)) ? Number(sp.days) : 45;
+  const o = await overview(new Date(), { sort, limit, days });
+  const href = (over) => {
+    const next = { sort, n: limit, days, ...over };
+    const qs = new URLSearchParams({ ...(next.sort !== "recent" ? { sort: next.sort } : {}), ...(next.n !== 12 ? { n: String(next.n) } : {}), ...(next.days !== 45 ? { days: String(next.days) } : {}) }).toString();
+    return qs ? `/?${qs}` : "/";
+  };
 
   if (o.total === 0) {
     return (
@@ -37,7 +57,21 @@ export default async function Overview() {
         <section className="panel" aria-labelledby="attn-h">
           <div className="panel-head">
             <h2 id="attn-h">Gone quiet</h2>
-            <span className="sub">No order for more than 45 days. The {o.attention.length} biggest of {o.attentionCount.toLocaleString("en-IN")}</span>
+            <span className="sub">No order for more than {days} days. Showing {o.attention.length} of {o.attentionCount.toLocaleString("en-IN")}</span>
+          </div>
+          <div className="toolbar" role="group" aria-label="Sort gone quiet list">
+            <span className="sub-lab">Sort</span>
+            <span className="seg">
+              {SORTS.map(([k, label]) => (
+                <Link key={k} href={href({ sort: k })} aria-current={sort === k ? "true" : undefined} scroll={false}>{label}</Link>
+              ))}
+            </span>
+            <span className="sub-lab">Quiet for over</span>
+            <span className="seg">
+              {DAYS.map((d) => (
+                <Link key={d} href={href({ days: d })} aria-current={days === d ? "true" : undefined} scroll={false}>{d} days</Link>
+              ))}
+            </span>
           </div>
           {o.attention.map((c) => (
             <div className="attn" key={c.id}>
@@ -55,8 +89,16 @@ export default async function Overview() {
               </div>
             </div>
           ))}
+          {o.attentionCount > o.attention.length && (
+            <div className="panel-body row">
+              {SIZES.filter((s) => s > o.attention.length && s !== limit).slice(0, 1).map((s) => (
+                <Link key={s} className="btn sm" href={href({ n: s })} scroll={false}>Show {Math.min(s, o.attentionCount).toLocaleString("en-IN")}</Link>
+              ))}
+              {limit !== 12 && <Link className="btn quiet sm" href={href({ n: 12 })} scroll={false}>Show 12</Link>}
+            </div>
+          )}
           {o.attention.length === 0 && (
-            <div className="empty"><h3>Everyone has ordered recently</h3>Clients with no order for 45 days will show here.</div>
+            <div className="empty"><h3>Everyone has ordered recently</h3>Clients with no order for {days} days will show here.</div>
           )}
         </section>
 

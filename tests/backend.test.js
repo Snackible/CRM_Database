@@ -249,6 +249,23 @@ test("spelling variants of a company land on one client, existing or new", async
   assert.equal(nykaa[0].orderCount, 4);
 });
 
+test("the Overview's gone-quiet list sorts by most recent order by default, and by the other choices", async () => {
+  const recent = await overview(new Date(), {});
+  const days = recent.attention.map((c) => c.daysSince);
+  assert.deepEqual(days, [...days].sort((a, b) => a - b)); // fewest days since the last order first
+  const quiet = (await overview(new Date(), { sort: "quiet" })).attention.map((c) => c.daysSince);
+  assert.deepEqual(quiet, [...quiet].sort((a, b) => b - a));
+  const names = (await overview(new Date(), { sort: "name" })).attention.map((c) => c.name.toLowerCase());
+  assert.deepEqual(names, [...names].sort());
+  const wide = await overview(new Date(), { days: 1 });
+  const narrow = await overview(new Date(), { days: 180 });
+  assert.ok(wide.attentionCount >= recent.attentionCount && recent.attentionCount >= narrow.attentionCount); // a lower cut-off counts more clients
+  const bigger = (await overview(new Date(), { sort: "overdue", limit: 3 })).attention;
+  assert.ok(bigger.length <= 3);
+  const revenue = (await overview(new Date(), { sort: "revenue" })).attention.map((c) => c.revenue);
+  assert.deepEqual(revenue, [...revenue].sort((a, b) => b - a));
+});
+
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
   const body = "Spoke with Rahul Mehta. Net 45, 200 packs a month. Send samples by 5 Nov.";
   const r = await addNote(aId, body, "Aditi", [
