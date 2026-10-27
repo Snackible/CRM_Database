@@ -56,6 +56,12 @@ Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order val
 - **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
 - The accounts sheet itself can never be used as an order feed.
 
+## The chat (Ask)
+
+The chat button in the top bar opens a chat about your own data: how the business is doing, comparisons between periods, who is ordering less, top clients, and questions about one client (profile, last order, orders, products, notes, terms, contacts, next order due). Name a client once and “they” or “their” keeps meaning that client; on a client's page it starts out about that client. “note: …” drafts a note that is saved only when you press Save.
+
+It is free and has no usage limit because it uses no AI model and no outside service: questions are read by rules (`lib/ask.js`, `lib/chat.js`) and answered with queries over the CRM's own data, so every number is exact and nothing leaves the server. The trade-off is that it understands the kinds of question listed under “help”, not any wording. To teach it a new question, add a rule in `lib/chat.js` and a test in `tests/backend.test.js`.
+
 ## Connect the real database (Neon) and deploy
 
 1. **Create the database.** Sign up at neon.com (free, no card), create a project, and copy the connection string (the pooled one, starting with `postgresql://`).

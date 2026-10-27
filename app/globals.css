@@ -484,3 +484,30 @@ svg { flex: none; }
 .toolbar .seg { flex-wrap: wrap; }
 .toolbar .seg a { height: 34px; padding: 0 10px; font-size: 16px; white-space: nowrap; }
 .toolbar .sub-lab { flex: 0 0 100%; margin-bottom: -4px; }
+
+/* ---------- chat drawer ---------- */
+.chat { position: fixed; top: 16px; right: 16px; bottom: 16px; z-index: 45; width: min(440px, calc(100vw - 32px)); display: flex; flex-direction: column; background: var(--pane); color: var(--ink); border: 1px solid var(--rule); box-shadow: var(--sheet-shadow), 0 0 0 4px var(--plate); }
+.chat[hidden] { display: none; }
+.chat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 6px 14px; border-bottom: 3px solid var(--rule); }
+.chat-head h2 { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 900; }
+.chat-about { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 8px 14px; border-bottom: 1px solid var(--rule); background: var(--pane-2); font-size: 14px; }
+.chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.chat-empty { margin: 0; }
+.msg.user { align-self: flex-end; max-width: 85%; padding: 8px 12px; background: var(--plate); color: var(--plate-ink); overflow-wrap: anywhere; }
+.msg.bot { align-self: stretch; border: 1px solid var(--rule); background: var(--pane); }
+.msg.bot.muted { padding: 8px 12px; border-style: dotted; }
+.answer-head { padding: 10px 12px 8px; }
+.answer-head h3 { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.answer-head p { margin-top: 4px; font-size: 14px; line-height: 1.45; }
+.answer-note { padding: 0 12px 12px; }
+.answer-block { border-top: 1px solid var(--rule); }
+.answer-block-title { padding: 8px 12px 0; font-family: var(--font-cond); font-size: 17px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.answer .tbl th { padding: 6px 10px; font-size: 15px; }
+.answer .tbl td { padding: 7px 10px; font-size: 14px; vertical-align: top; }
+.chat-chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 14px 0; max-height: 108px; overflow-y: auto; }
+.chat-chips .btn { height: 30px; padding: 0 10px; font-size: 15px; }
+.chat-form { display: flex; gap: 8px; padding: 10px 14px 14px; }
+@media (max-width: 860px) {
+  .chat { inset: 0 0 58px 0; width: auto; border-width: 0; box-shadow: none; }
+  .chat-form { padding-bottom: 10px; }
+}

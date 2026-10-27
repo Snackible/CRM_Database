@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, RefreshCw, Search, Target, Unlink, Upload, Users } from "lucide-react";
+import { Building2, Check, MessageSquare, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, RefreshCw, Search, Target, Unlink, Upload, Users } from "lucide-react";
 import { THEMES, THEME_KEY } from "@/lib/themes";
 import { api } from "@/lib/client-api";
 import Logo from "@/components/Logo";
+import ChatDock from "@/components/ChatDock";
 
 const ADD = [
   { href: "/clients/new", label: "New client", desc: "Name, contacts, terms", icon: Building2 },
@@ -27,6 +28,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [theme, setThemeState] = useState("safelight");
   const [syncing, setSyncing] = useState(false);
   const [syncNote, setSyncNote] = useState("");
@@ -195,6 +197,9 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
           </form>
           <div className="topbar-spacer" />
           {syncNote && <span className="sync-note" role="status">{syncNote}</span>}
+          <button className="btn icon" aria-label="Ask about your clients" title="Ask" aria-expanded={chatOpen} onClick={() => { setChatOpen((v) => !v); setAddOpen(false); setThemeOpen(false); }}>
+            <MessageSquare size={17} aria-hidden="true" />
+          </button>
           <button className="btn icon" aria-label="Read the Google Sheets again" title="Read the Google Sheets again" aria-busy={syncing} disabled={syncing} onClick={resync}>
             <RefreshCw size={17} aria-hidden="true" className={syncing ? "spin" : undefined} />
           </button>
@@ -237,6 +242,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
         <main className="page">{children}</main>
       </div>
 
+      <ChatDock open={chatOpen} onClose={() => setChatOpen(false)} />
       <nav className="tabbar" aria-label="Main">
         {NAV.slice(0, 2).map((n) => (
           <Link key={n.href} href={n.href} aria-current={active(pathname, n.href) ? "page" : undefined}>

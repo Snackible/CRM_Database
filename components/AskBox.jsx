@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowRight, CheckCircle2, Search, StickyNote } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
 import { api } from "@/lib/client-api";
+import AnswerView from "@/components/AnswerView";
 
 const EXAMPLES = [
   "Top 10 clients this year",
@@ -23,7 +23,6 @@ export default function AskBox() {
   const [res, setRes] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pick, setPick] = useState(null);
   const [saved, setSaved] = useState("");
 
   async function ask(text) {
@@ -36,7 +35,6 @@ export default function AskBox() {
     try {
       const r = await api("/api/ask", { method: "POST", body: { q: question } });
       setRes(r);
-      setPick(r.note?.candidates?.[0]?.id ?? null);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -44,11 +42,10 @@ export default function AskBox() {
     }
   }
 
-  async function saveNote() {
-    const client = res.note.candidates.find((c) => c.id === pick);
+  async function saveNote(client, body) {
     setBusy(true);
     try {
-      await api(`/api/clients/${client.id}/notes`, { method: "POST", body: { body: res.note.text } });
+      await api(`/api/clients/${client.id}/notes`, { method: "POST", body: { body } });
       setSaved(client.name);
       setRes(null);
       setQ("");
@@ -84,47 +81,8 @@ export default function AskBox() {
       {res && (
         <div aria-live="polite" style={{ borderTop: "2px solid var(--rule)" }}>
           <div className="panel-body">
-            <h3 style={{ marginBottom: 4 }}>{res.href ? <Link href={res.href}>{res.title} <ArrowRight size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /></Link> : res.title}</h3>
-            {res.summary && <p>{res.summary}</p>}
+            <AnswerView res={res} busy={busy} onSaveNote={saveNote} onCancelNote={() => setRes(null)} />
           </div>
-
-          {res.note && (
-            <div className="panel-body stack" style={{ paddingTop: 0 }}>
-              <div className="notice info">
-                <StickyNote size={20} aria-hidden="true" />
-                <div style={{ whiteSpace: "pre-wrap" }}>{res.note.text}</div>
-              </div>
-              {res.note.candidates.length > 1 && (
-                <div className="field" style={{ maxWidth: 420 }}>
-                  <label htmlFor="note-client">Client</label>
-                  <select id="note-client" className="select" value={pick ?? ""} onChange={(e) => setPick(Number(e.target.value))}>
-                    {res.note.candidates.map((c) => <option key={c.id} value={c.id}>{c.name}{c.city ? ` · ${c.city}` : ""}</option>)}
-                  </select>
-                </div>
-              )}
-              <div className="row">
-                <button className="btn primary" onClick={saveNote} disabled={busy || !pick}>Save note</button>
-                <button className="btn quiet" onClick={() => setRes(null)}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {res.columns && res.rows?.length > 0 && (
-            <div className="table-wrap">
-              <table className="tbl">
-                <thead><tr>{res.columns.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                <tbody>
-                  {res.rows.map((r, i) => (
-                    <tr key={i}>
-                      {r.cells.map((cell, j) => (
-                        <td key={j}>{j === 0 && r.href ? <Link className="name" href={r.href}>{cell}</Link> : cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
       )}
     </section>

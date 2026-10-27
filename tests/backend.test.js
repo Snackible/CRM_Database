@@ -17,6 +17,7 @@ import { finishImport, importBatch, startImport } from "../lib/importer.js";
 import { clientLookup, getClientDetail, importsList, listClients, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
 import { createSource, syncIfDue, syncNow, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
+import { chat, cleanContext } from "../lib/chat.js";
 import { closeDb, query } from "../lib/db.js";
 
 after(() => closeDb());
@@ -264,6 +265,55 @@ test("the Overview's gone-quiet list sorts by most recent order by default, and 
   assert.ok(bigger.length <= 3);
   const revenue = (await overview(new Date(), { sort: "revenue" })).attention.map((c) => c.revenue);
   assert.deepEqual(revenue, [...revenue].sort((a, b) => b - a));
+});
+
+test("the chat remembers the client, follows up on periods, and answers about the business", async () => {
+  const help = await chat("help");
+  assert.ok(help.rows.length >= 3);
+
+  const overview = await chat("how are we doing?");
+  assert.match(overview.summary, /This month so far/);
+  assert.ok(overview.blocks.length >= 2);
+
+  const about = await chat("tell me about greenleaf");
+  assert.equal(about.context.clientId, aId);
+  assert.ok(about.blocks.length >= 1);
+  for (const q of ["recent orders", "when did they last order?", "what do they buy?", "their contacts", "payment terms", "notes", "who owns them", "when is the next order due?"]) {
+    const r = await chat(q, about.context);
+    assert.equal(r.context.clientId, aId, q); // still about the same client
+    assert.ok(r.title && (r.summary || r.rows), q);
+  }
+  assert.match((await chat("when did they last order?", about.context)).summary, /Last order|No orders/);
+
+  const draft = await chat("note: wants samples", about.context);
+  assert.equal(draft.note.candidates[0].id, aId);
+  assert.equal(draft.note.text, "wants samples");
+
+  const cmp = await chat("compare this month with last month");
+  assert.equal(cmp.columns.length, 4);
+  assert.equal((await chat("who is ordering less?")).title, "Clients ordering less");
+  assert.equal((await chat("who is ordering more?")).title, "Clients ordering more");
+  assert.equal((await chat("how many clients are active?")).title, "Clients by standing");
+  assert.equal((await chat("best month")).title, "Best months");
+
+  // "and last month?" reuses the last question with the new period
+  const first = await chat("revenue this month");
+  const follow = await chat("and last month?", first.context);
+  assert.match(follow.title, /last month/i);
+  // a new question with a period is not a follow-up, even when it starts with "and"
+  const asked = await chat("when did they last order?", about.context);
+  assert.equal((await chat("and what is their revenue this year", asked.context)).context.last.sub, "revenue");
+  assert.match((await chat("top clients last month", first.context)).title, /^Top/);
+
+  // on a client's page "revenue" means that client; "our"/"all" means the business
+  const mine = await chat("revenue this year", { clientId: aId, clientName: "Greenleaf Mart" });
+  assert.equal(mine.context.clientId, aId);
+  assert.match(mine.summary, /this year/);
+  assert.match((await chat("our revenue this year", { clientId: aId, clientName: "Greenleaf Mart" })).title, /^Revenue/);
+
+  // the context that comes back from the browser is whitelisted
+  assert.deepEqual(cleanContext({ clientId: "x", last: { intent: "DROP TABLE", limit: 1e9, period: { from: "x", to: "y" } } }), { clientId: null, clientName: null, last: null });
+  assert.equal(cleanContext({ last: { intent: "top", limit: 1e9, owner: "Aditi" } }).last.limit, 100);
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
