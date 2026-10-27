@@ -227,8 +227,8 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
                   <span className="chipset" aria-hidden="true">
                     <span style={{ background: t.bed }} /><span style={{ background: t.pane }} /><span style={{ background: t.plate }} />
                   </span>
-                  <span>{t.name}{t.note ? <span className="muted" style={{ display: "block", textTransform: "none", letterSpacing: 0, fontFamily: "var(--font)", fontWeight: 400 }}>{t.note}</span> : null}</span>
-                  {theme === t.id && <Check size={16} aria-hidden="true" style={{ marginLeft: "auto" }} />}
+                  <span className="nm"><b>{t.name}</b>{t.note ? <small>{t.note}</small> : null}</span>
+                  {theme === t.id && <Check size={20} strokeWidth={2.6} aria-hidden="true" style={{ marginLeft: "auto" }} />}
                 </button>
               ))}
             </div>
