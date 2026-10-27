@@ -12,7 +12,8 @@
     "check-accounts": "node --env-file=.env.local scripts/check-accounts.mjs",
     "test:pg": "node scripts/pg-wire-test.mjs",
     "backup": "node --env-file=.env.local scripts/backup.mjs",
-    "copy-to-postgres": "node --env-file=.env.local scripts/copy-local-to-postgres.mjs"
+    "copy-to-postgres": "node --env-file=.env.local scripts/copy-local-to-postgres.mjs",
+    "merge-po-clients": "node --env-file=.env.local scripts/merge-po-clients.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.61.0",
