@@ -56,6 +56,12 @@ Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order val
 - **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
 - The accounts sheet itself can never be used as an order feed.
 
+## What counts as a sale
+
+An order sheet's STATUS column also lists orders that are not sales: **Duplicate**, **Cancelled**, **RTO** (returned to origin, in any stage) and **Internal PO**. They stay on file and show struck through on the client's order list, but are left out of revenue, order counts, standings, the Overview, Insights and the chat. Every other status (Delivered, Pending, In-Transit, blank) counts. The rule is in `lib/status.js`, and the totals read the `sales` view, which is the orders that count.
+
+An order's status can change in the sheet after it was first loaded (Pending, then Cancelled). Each time a sheet is read again, orders already on file are brought up to date, so a cancellation reaches the totals. To apply the rule to orders loaded before it existed, run `npm run recount-sales` (dry run) and `npm run recount-sales -- --apply`.
+
 ## The chat (Ask)
 
 The chat button in the top bar opens a chat about your own data: how the business is doing, comparisons between periods, who is ordering less, top clients, and questions about one client (profile, last order, orders, products, notes, terms, contacts, next order due). Name a client once and “they” or “their” keeps meaning that client; on a client's page it starts out about that client. “note: …” drafts a note that is saved only when you press Save.

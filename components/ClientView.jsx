@@ -259,9 +259,9 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
                 </thead>
                 <tbody>
                   {shownPurchases.map((p) => (
-                    <tr key={p.id}>
+                    <tr key={p.id} className={p.counted === false ? "not-counted" : undefined}>
                       <td className="nowrap">{p.order_date ? dateLabel(p.order_date, false) : "—"}</td>
-                      <td>{p.order_ref}</td>
+                      <td>{p.order_ref}{p.counted === false && <span className="chip plain" title="Left out of revenue and every other total" style={{ marginLeft: 8 }}>{p.status || "Not a sale"} · not counted</span>}</td>
                       <td>{p.product}</td>
                       <td className="num">{p.quantity}</td>
                       <td className="num col-hide">{p.rate !== null ? money(p.rate) : ""}</td>

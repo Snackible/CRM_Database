@@ -18,6 +18,7 @@ import { clientLookup, getClientDetail, importsList, listClients, overview, sear
 import { createSource, syncIfDue, syncNow, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
 import { chat, cleanContext } from "../lib/chat.js";
+import { isSale, statusOf } from "../lib/status.js";
 import { GeminiError, callGeminiAcrossKeys } from "../lib/gemini.js";
 import { aiPlanQuestion, cleanAiPlan, forgetCache } from "../lib/aiPlan.js";
 import { closeDb, query } from "../lib/db.js";
@@ -456,6 +457,48 @@ test("the rules still answer when Gemini is missing, busy, resting, broken or no
   }
   assert.match((await chat("zzz qqq wibble wobble", {}, new Date(), { ai: viaFake(async () => { throw new GeminiError("quota", { quota: true }); }) })).summary, /reached its limit/);
   assert.match((await chat("zzz qqq wibble wobble", {}, new Date(), { ai: viaFake(async () => { throw new GeminiError("busy", { transient: true }); }) })).summary, /busy/);
+});
+
+test("duplicate, cancelled and returned orders are kept but never counted, and a status changed in the sheet reaches orders already loaded", async () => {
+  assert.equal(isSale("Delivered"), true);
+  assert.equal(isSale("Pending"), true);
+  assert.equal(isSale("In-Transit"), true);
+  assert.equal(isSale(""), true);
+  assert.equal(isSale("WEDNESDAY"), true); // a stray word is not a reason to drop an order
+  for (const s of ["Duplicate", "duplicate ", "Cancelled", "CANCELLED", "RTO", "RTO - Delivered", "RTO T", "rto - intransit", "Internal PO", "Internal Po"]) assert.equal(isSale(s), false, s);
+  assert.equal(statusOf({ STATUS: " Cancelled " }), "Cancelled");
+  assert.equal(statusOf({ Status: "RTO" }), "RTO");
+  assert.equal(statusOf({}), "");
+
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date", STATUS: "sale.extra" };
+  const row = (ref, amount, STATUS) => ({ PO: "Statustest Foods Pvt Ltd", "Order Value": String(amount), "Ref No": ref, "Order Date": "05-05-2026", STATUS });
+  const load = async (rows) => {
+    const { importId } = await startImport({ filename: "status-test", totalRows: rows.length, mapping, options: { createClients: true }, source: "sheet" }, "t");
+    const r = await importBatch({ importId, offset: 0, rows });
+    await finishImport({ importId });
+    return r;
+  };
+  const revenueOf = async () => (await query(`SELECT COALESCE(sum(s.amount), 0)::float8 AS n FROM sales s JOIN clients c ON c.id = s.client_id WHERE c.name = 'Statustest Foods Pvt Ltd'`)).rows[0].n;
+  const id = async () => (await query(`SELECT id FROM clients WHERE name = 'Statustest Foods Pvt Ltd'`)).rows[0].id;
+
+  const first = await load([row("S1", 1000, "Delivered"), row("S2", 2000, "Cancelled"), row("S3", 4000, "Duplicate"), row("S4", 8000, "Pending"), row("S5", 16000, "RTO - Delivered")]);
+  assert.equal(first.added, 5);
+  assert.equal(await revenueOf(), 9000); // only Delivered and Pending are sales
+
+  // the client's page lists every order, flags the ones not counted, and totals only the real sales
+  const d = await getClientDetail(await id());
+  assert.equal(d.purchases.length, 5);
+  assert.deepEqual(d.purchases.filter((p) => !p.counted).map((p) => p.status).sort(), ["Cancelled", "Duplicate", "RTO - Delivered"]);
+  assert.equal(d.client.orderCount, 2);
+
+  // the same rows read again, one now cancelled and one now delivered: nothing is added, two orders are brought up to date
+  const again = await load([row("S1", 1000, "Cancelled"), row("S2", 2000, "Delivered"), row("S3", 4000, "Duplicate"), row("S4", 8000, "Pending"), row("S5", 16000, "RTO - Delivered")]);
+  assert.equal(again.added, 0);
+  assert.equal(again.updated, 2);
+  assert.equal(await revenueOf(), 10000); // S2 (2000) and S4 (8000)
+
+  // and reading it a third time with nothing changed updates nothing
+  assert.equal((await load([row("S1", 1000, "Cancelled"), row("S2", 2000, "Delivered")])).updated, 0);
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
