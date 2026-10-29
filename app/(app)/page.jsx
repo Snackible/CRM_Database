@@ -3,8 +3,38 @@ import { ArrowRight } from "lucide-react";
 import { overview } from "@/lib/queries";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { BerthStrip, StatusChip } from "@/components/Berth";
+import { Bar, Card } from "@/components/Cards";
+import { byChannel, byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
+import { parsePeriod } from "@/lib/periods";
+import { isoDay } from "@/lib/metrics";
 
 export const metadata = { title: "Overview · Snackible CRM" };
+
+// The summaries above the Gone quiet list: this month against the same days last month, standing counts,
+// revenue by month, the biggest clients, channels, first orders and leads waiting.
+async function summaries(today) {
+  const month = parsePeriod("this month", today);
+  const year = parsePeriod("this year", today);
+  const lastFrom = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+  const lastTo = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, Math.min(today.getDate(), new Date(today.getFullYear(), today.getMonth(), 0).getDate())));
+  const [mtd, lastMtd, standing, months, top, channels, fresh, leads] = await Promise.all([
+    totals(month.from, month.to),
+    totals(lastFrom, lastTo),
+    standingCounts(today),
+    byMonth(12, today),
+    topClients(year.from, year.to, 8),
+    byChannel(year.from, year.to),
+    newClients(month.from, month.to, 5),
+    leadsSummary("", 5),
+  ]);
+  return { mtd, lastMtd, standing, months, top, channels, fresh, leads };
+}
+
+const pct = (now, before) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
+function Change({ now, before }) {
+  const p = pct(now, before);
+  return p === null ? null : <small className={`chg${p < 0 ? " down" : ""}`}>{p > 0 ? "+" : ""}{p}%</small>;
+}
 
 const SORTS = [
   ["recent", "Most recent"],
@@ -22,7 +52,13 @@ export default async function Overview({ searchParams }) {
   const sort = SORTS.some(([k]) => k === sp.sort) ? sp.sort : "recent";
   const limit = SIZES.includes(Number(sp.n)) ? Number(sp.n) : 12;
   const days = DAYS.includes(Number(sp.days)) ? Number(sp.days) : 45;
-  const o = await overview(new Date(), { sort, limit, days });
+  const today = new Date();
+  const [o, s] = await Promise.all([overview(today, { sort, limit, days }), summaries(today)]);
+  const maxMonth = Math.max(0, ...s.months.map((m) => m.revenue));
+  const yearTotal = s.channels.reduce((sum, c) => sum + c.revenue, 0);
+  const topShare = yearTotal > 0 ? Math.round((s.top.reduce((sum, c) => sum + c.revenue, 0) / yearTotal) * 100) : 0;
+  const avg = (t) => (t.orders ? t.revenue / t.orders : 0);
+  const standingTotal = s.standing.reduce((sum, c) => sum + c.n, 0);
   const href = (over) => {
     const next = { sort, n: limit, days, ...over };
     const qs = new URLSearchParams({ ...(next.sort !== "recent" ? { sort: next.sort } : {}), ...(next.n !== 12 ? { n: String(next.n) } : {}), ...(next.days !== 45 ? { days: String(next.days) } : {}) }).toString();
@@ -52,6 +88,97 @@ export default async function Overview({ searchParams }) {
         <b>{o.attentionCount.toLocaleString("en-IN")}</b> {o.attentionCount === 1 ? "has" : "have"} gone quiet
         {o.unmatched.rows > 0 ? <>, and <b>{o.unmatched.rows} purchase {o.unmatched.rows === 1 ? "row is" : "rows are"}</b> waiting to be matched to a client</> : null}.
       </p>
+
+      <div className="ov-grid">
+        <div>
+          <Card title="This month so far" sub={`1 to ${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, against the same days last month`}>
+            <dl className="fig-list">
+              <div className="lead"><dt>Revenue</dt><dd>{money(s.mtd.revenue)}<Change now={s.mtd.revenue} before={s.lastMtd.revenue} /></dd></div>
+              <div><dt>Orders</dt><dd>{s.mtd.orders.toLocaleString("en-IN")}<Change now={s.mtd.orders} before={s.lastMtd.orders} /></dd></div>
+              <div><dt>Clients ordering</dt><dd>{s.mtd.clients.toLocaleString("en-IN")}<Change now={s.mtd.clients} before={s.lastMtd.clients} /></dd></div>
+              <div><dt>Average order</dt><dd>{money(avg(s.mtd))}<Change now={avg(s.mtd)} before={avg(s.lastMtd)} /></dd></div>
+              <div><dt>Same days last month</dt><dd className="muted">{money(s.lastMtd.revenue)}</dd></div>
+            </dl>
+          </Card>
+
+          <Card title="Revenue by month" sub="Last twelve months">
+            {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
+              <table className="tbl">
+                <tbody>
+                  {s.months.map((m) => (
+                    <tr key={m.month}>
+                      <td className="nowrap" style={{ width: 110 }}>{new Date(`${m.month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</td>
+                      <td style={{ width: "46%" }}><Bar value={m.revenue} max={maxMonth} /></td>
+                      <td className="num nowrap">{money(m.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+
+          <Card title="Revenue by channel" sub="This year">
+            <table className="tbl">
+              <tbody>
+                {s.channels.map((c) => (
+                  <tr key={c.channel}>
+                    <td style={{ width: 110 }}>{c.channel}</td>
+                    <td style={{ width: "40%" }}><Bar value={c.revenue} max={s.channels[0]?.revenue ?? 0} /></td>
+                    <td className="num nowrap">{money(c.revenue)}</td>
+                    <td className="num col-hide">{yearTotal ? Math.round((c.revenue / yearTotal) * 100) : 0}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </div>
+
+        <div>
+          <Card title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
+            <table className="tbl">
+              <tbody>
+                {s.standing.map((c) => (
+                  <tr key={c.standing}><td><StatusChip standing={c.standing} /></td><td className="num">{c.n.toLocaleString("en-IN")}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <Card title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>}>
+            <table className="tbl">
+              <tbody>
+                {s.top.map((c) => (
+                  <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="num nowrap">{money(c.revenue)}</td><td className="num col-hide">{c.orders.toLocaleString("en-IN")} orders</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <Card title="New clients this month" sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
+            {s.fresh.rows.length === 0 ? <div className="empty">No first orders yet this month.</div> : (
+              <table className="tbl">
+                <tbody>
+                  {s.fresh.rows.map((c) => (
+                    <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="nowrap">{dateLabel(c.first, false)}</td><td className="num nowrap">{money(c.revenue)}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+
+          <Card title="Leads waiting" sub={`${s.leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>}>
+            {s.leads.rows.length === 0 ? <div className="empty">No open leads.</div> : (
+              <table className="tbl">
+                <tbody>
+                  {s.leads.rows.map((l) => (
+                    <tr key={l.id}><td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td><td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+        </div>
+      </div>
 
       <div className="two-col">
         <section className="panel" aria-labelledby="attn-h">
