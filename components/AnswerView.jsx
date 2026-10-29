@@ -32,6 +32,7 @@ export default function AnswerView({ res, onSaveNote, onCancelNote, busy = false
       <div className="answer-head">
         <h3>{res.href ? <Link href={res.href}>{res.title} <ArrowRight size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /></Link> : res.title}</h3>
         {res.summary && <p>{res.summary}</p>}
+        {res.via === "ai" && <p className="answer-via">Understood with the AI helper. The figures come straight from your data.</p>}
       </div>
 
       {res.note && (

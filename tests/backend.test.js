@@ -18,6 +18,8 @@ import { clientLookup, getClientDetail, importsList, listClients, overview, sear
 import { createSource, syncIfDue, syncNow, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
 import { chat, cleanContext } from "../lib/chat.js";
+import { GeminiError, callGeminiAcrossKeys } from "../lib/gemini.js";
+import { aiPlanQuestion, cleanAiPlan, forgetCache } from "../lib/aiPlan.js";
 import { closeDb, query } from "../lib/db.js";
 
 after(() => closeDb());
@@ -314,6 +316,146 @@ test("the chat remembers the client, follows up on periods, and answers about th
   // the context that comes back from the browser is whitelisted
   assert.deepEqual(cleanContext({ clientId: "x", last: { intent: "DROP TABLE", limit: 1e9, period: { from: "x", to: "y" } } }), { clientId: null, clientName: null, last: null });
   assert.equal(cleanContext({ last: { intent: "top", limit: 1e9, owner: "Aditi" } }).last.limit, 100);
+});
+
+// ---- Gemini: retries, rest, cache, and the rules answering whatever happens (a fake Gemini; no real calls) ----
+const reply = (status, body = "", headers = {}) => ({ ok: status < 400, status, headers: { get: (k) => headers[k.toLowerCase()] ?? null }, text: async () => body, json: async () => JSON.parse(body) });
+const okBody = (text) => JSON.stringify({ candidates: [{ content: { parts: [{ text }] }, finishReason: "STOP" }] });
+const fakeFetch = (...replies) => { const f = async () => { f.calls++; return replies[Math.min(f.calls - 1, replies.length - 1)]; }; f.calls = 0; return f; };
+const sleeper = () => { const s = async (ms) => { s.delays.push(ms); }; s.delays = []; return s; };
+const asKey = (keys) => ({ GEMINI_API_KEY: keys, GEMINI_MODEL: "test-model" });
+const input = { system: "s", prompt: "p" };
+const clearRest = () => query("DELETE FROM app_state WHERE key = 'gemini_rest'");
+
+test("Gemini is retried with backoff when busy, never when the problem is ours, and rests after a quota error", async () => {
+  await clearRest();
+  // busy twice, then fine: waits 2s then 5s, one answer, three calls
+  let f = fakeFetch(reply(503, "UNAVAILABLE high demand"), reply(503, "overloaded"), reply(200, okBody('{"intent":"overview"}')));
+  let s = sleeper();
+  assert.equal(await callGeminiAcrossKeys(input, { fetchImpl: f, sleep: s, env: asKey("k1") }), '{"intent":"overview"}');
+  assert.equal(f.calls, 3);
+  assert.deepEqual(s.delays, [2000, 5000]);
+
+  // busy throughout: four attempts (1 + 3 waits of 2s, 5s, 10s), then gives up as busy
+  f = fakeFetch(reply(503, "UNAVAILABLE"));
+  s = sleeper();
+  await assert.rejects(() => callGeminiAcrossKeys(input, { fetchImpl: f, sleep: s, env: asKey("k1") }), (e) => e instanceof GeminiError && e.transient && !e.quota);
+  assert.equal(f.calls, 4);
+  assert.deepEqual(s.delays, [2000, 5000, 10000]);
+
+  // a real error is not retried, and the key never appears in the message
+  f = fakeFetch(reply(400, "API_KEY_INVALID secretkey1"));
+  s = sleeper();
+  await assert.rejects(() => callGeminiAcrossKeys(input, { fetchImpl: f, sleep: s, env: asKey("secretkey1") }), (e) => !e.transient && !e.quota && !e.message.includes("secretkey1"));
+  assert.equal(f.calls, 1);
+  assert.deepEqual(s.delays, []);
+
+  // quota on the first key moves to the second without waiting
+  const seen = [];
+  const two = async (url, init) => { seen.push(init.headers["x-goog-api-key"]); return seen.length === 1 ? reply(429, "RESOURCE_EXHAUSTED") : reply(200, okBody("{}")); };
+  s = sleeper();
+  assert.equal(await callGeminiAcrossKeys(input, { fetchImpl: two, sleep: s, env: asKey("k1, k2") }), "{}");
+  assert.deepEqual(seen, ["k1", "k2"]);
+  assert.deepEqual(s.delays, []);
+
+  // quota on every key: not retried, and the app rests, so the next question spends nothing
+  f = fakeFetch(reply(429, "RESOURCE_EXHAUSTED"));
+  await assert.rejects(() => callGeminiAcrossKeys(input, { fetchImpl: f, sleep: sleeper(), env: asKey("k1") }), (e) => e.quota);
+  assert.equal(f.calls, 1);
+  const after = fakeFetch(reply(200, okBody("{}")));
+  await assert.rejects(() => callGeminiAcrossKeys(input, { fetchImpl: after, sleep: sleeper(), env: asKey("k1") }), (e) => e.cooling);
+  assert.equal(after.calls, 0);
+  await clearRest();
+});
+
+test("every question costs at most one Gemini call: cached, shared, filtered, and validated", async () => {
+  forgetCache();
+  await query("DELETE FROM ai_cache");
+  const plan = (p) => async () => { plan.calls++; return JSON.stringify(p); };
+  plan.calls = 0;
+  const ask = (q, call, extra = {}) => aiPlanQuestion({ question: q, call, enabled: true, owners: ["Aditi"], ...extra });
+
+  const movers = plan({ intent: "movers", direction: "drop" });
+  const first = await ask("which customers dropped off the most lately", movers);
+  assert.equal(first.plan.intent, "movers");
+  assert.equal(first.cached, false);
+  // the same question again (other capitals, punctuation) is answered from the cache, with no call
+  assert.equal((await ask("Which customers dropped off the MOST lately?!", movers)).cached, true);
+  forgetCache(); // another server instance: the database remembers
+  assert.equal((await ask("which customers dropped off the most lately", movers)).cached, true);
+  assert.equal(plan.calls, 1);
+
+  // two people asking the same new thing at the same moment share one call
+  const slow = async () => { plan.calls++; await new Promise((r) => setTimeout(r, 30)); return '{"intent":"counts"}'; };
+  const [a, b] = await Promise.all([ask("how many accounts do we hold right now", slow), ask("how many accounts do we hold right now", slow)]);
+  assert.equal(a.plan.intent, "counts");
+  assert.equal(b.plan.intent, "counts");
+  assert.equal(plan.calls, 2);
+
+  // "not a CRM question" is remembered too
+  const none = plan({ intent: "none" });
+  assert.equal((await ask("what is the capital of france please", none)).reason, "unclear");
+  assert.equal((await ask("what is the capital of france please", none)).reason, "unclear");
+  assert.equal(plan.calls, 3);
+
+  // nothing is sent for what cannot be a question, or when there is no key
+  assert.equal((await ask("ok", movers)).reason, "skipped");
+  assert.equal((await ask("show me everything", movers, { enabled: false })).reason, "unconfigured");
+  assert.equal(plan.calls, 3);
+
+  // unusable replies are dropped, not trusted
+  assert.equal((await ask("do something dangerous with the data", plan({ intent: "delete everything" }))).reason, "error");
+  assert.equal((await ask("tell me a story about our sales", async () => "not json at all")).reason, "error");
+
+  // plans are cleaned: limits clamped, owners matched to real names, a bad period ignored
+  const cleaned = cleanAiPlan({ intent: "top", limit: 9999, owner: "aditi", period: "last month", days: -5, sub: "DROP", focus: "x" }, { owners: ["Aditi"] });
+  assert.equal(cleaned.limit, 50);
+  assert.equal(cleaned.owner, "Aditi");
+  assert.equal(cleaned.days, 1);
+  assert.equal(cleaned.sub, "profile");
+  assert.equal(cleaned.focus, null);
+  assert.equal(cleanAiPlan({ intent: "owner", owner: "Someone Else" }, { owners: ["Aditi"] }).owner, "");
+});
+
+test("the rules still answer when Gemini is missing, busy, resting, broken or not needed", async () => {
+  forgetCache();
+  await query("DELETE FROM ai_cache");
+  let asked = 0;
+  const viaFake = (call) => (args) => aiPlanQuestion({ ...args, call, enabled: true });
+  const spy = (args) => { asked++; return aiPlanQuestion({ ...args, call: async () => '{"intent":"overview"}', enabled: true }); };
+
+  // a question the rules understand never reaches Gemini
+  const known = await chat("how are we doing?", {}, new Date(), { ai: spy });
+  assert.match(known.title, /How the business is doing/);
+  assert.equal(known.via, undefined);
+  assert.equal(asked, 0);
+
+  // wording the rules cannot read: Gemini says what it means and the same exact queries answer it
+  const unknown = "shops that stopped coming back lately";
+  const smart = await chat(unknown, {}, new Date(), { ai: viaFake(async () => '{"intent":"movers","direction":"drop"}') });
+  assert.equal(smart.title, "Clients ordering less");
+  assert.equal(smart.via, "ai");
+
+  // no key, quota used up, busy, broken or crashing: the rules' own answer, never an error
+  for (const [name, ai] of [
+    ["not configured", null],
+    ["no key", (args) => aiPlanQuestion({ ...args, enabled: false })],
+    ["quota", viaFake(async () => { throw new GeminiError("quota", { quota: true }); })],
+    ["busy", viaFake(async () => { throw new GeminiError("busy", { transient: true }); })],
+    ["bad reply", viaFake(async () => "{{{")],
+    ["crash", async () => { throw new Error("boom"); }],
+    ["empty", async () => ({})],
+  ]) {
+    forgetCache();
+    await query("DELETE FROM ai_cache");
+    const r = await chat("zzz qqq wibble wobble", {}, new Date(), { ai });
+    assert.ok(r.title === "No answer found" || r.title === "Search results", name);
+    assert.equal(r.via, undefined, name);
+    // and the questions the rules do know are untouched by any of it
+    assert.match((await chat("compare this month with last month", {}, new Date(), { ai })).title, /against/, name);
+  }
+  assert.match((await chat("zzz qqq wibble wobble", {}, new Date(), { ai: viaFake(async () => { throw new GeminiError("quota", { quota: true }); }) })).summary, /reached its limit/);
+  assert.match((await chat("zzz qqq wibble wobble", {}, new Date(), { ai: viaFake(async () => { throw new GeminiError("busy", { transient: true }); }) })).summary, /busy/);
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
