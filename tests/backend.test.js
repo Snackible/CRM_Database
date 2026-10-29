@@ -501,6 +501,50 @@ test("duplicate, cancelled and returned orders are kept but never counted, and a
   assert.equal((await load([row("S1", 1000, "Cancelled"), row("S2", 2000, "Delivered")])).updated, 0);
 });
 
+test("the same marketplace PO entered twice counts once; a different amount, or a cancelled first copy, does not hide an order", async () => {
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date", STATUS: "sale.extra" };
+  const row = (po, ref, date, amount, STATUS = "Delivered") => ({ PO: `Repeatco Foods Pvt Ltd ${po}`, "Order Value": String(amount), "Ref No": ref, "Order Date": date, STATUS });
+  const load = async (rows) => {
+    const { importId } = await startImport({ filename: "repeat-test", totalRows: rows.length, mapping, options: { createClients: true, stripPoCodes: true }, source: "sheet" }, "t");
+    const r = await importBatch({ importId, offset: 0, rows });
+    await finishImport({ importId });
+    return r;
+  };
+  const revenue = async () => (await query(`SELECT COALESCE(sum(s.amount), 0)::float8 AS n FROM sales s JOIN clients c ON c.id = s.client_id WHERE c.name = 'Repeatco Foods Pvt Ltd'`)).rows[0].n;
+  const lines = async () => {
+    const id = (await query(`SELECT id FROM clients WHERE name = 'Repeatco Foods Pvt Ltd'`)).rows[0].id;
+    return Object.fromEntries((await getClientDetail(id)).purchases.map((p) => [p.order_ref, p]));
+  };
+
+  await load([
+    row("P1111111", "R1", "05-05-2026", 5000),
+    row("P1111111", "R2", "06-05-2026", 5000), // the same PO and amount again: one order entered twice
+    row("P2222222", "R3", "07-05-2026", 3000),
+    row("P2222222", "R4", "07-05-2026", 4500), // same PO, different amount: not a repeat
+    row("P3333333", "R5", "08-05-2026", 7000),
+  ]);
+  assert.equal(await revenue(), 19500); // R2 is left out
+  let l = await lines();
+  assert.equal(l.R2.counted, false);
+  assert.equal(l.R2.status, "Repeated PO");
+  assert.equal(l.R1.counted, true);
+  assert.equal(l.R4.counted, true);
+
+  // the first copy is later cancelled in the sheet: the second one now counts instead, so the order is not lost
+  await load([
+    row("P1111111", "R1", "05-05-2026", 5000, "Cancelled"),
+    row("P1111111", "R2", "06-05-2026", 5000),
+    row("P2222222", "R3", "07-05-2026", 3000),
+    row("P2222222", "R4", "07-05-2026", 4500),
+    row("P3333333", "R5", "08-05-2026", 7000),
+  ]);
+  assert.equal(await revenue(), 19500); // R1 (5000) is out, R2 (5000) is in
+  l = await lines();
+  assert.equal(l.R1.counted, false);
+  assert.equal(l.R1.status, "Cancelled");
+  assert.equal(l.R2.counted, true);
+});
+
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
   const body = "Spoke with Rahul Mehta. Net 45, 200 packs a month. Send samples by 5 Nov.";
   const r = await addNote(aId, body, "Aditi", [

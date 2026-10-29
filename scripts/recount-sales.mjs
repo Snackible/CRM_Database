@@ -5,6 +5,7 @@
 //   npm run recount-sales            dry run: shows what would change, writes nothing
 //   npm run recount-sales -- --apply do it (take `npm run backup` first)
 import { query, closeDb } from "../lib/db.js";
+import { countRepeatedPos, markRepeatedPos } from "../lib/sales.js";
 
 const apply = process.argv.includes("--apply");
 const STATUS = `(SELECT btrim(value) FROM jsonb_each_text(extra) WHERE lower(btrim(key)) = 'status' LIMIT 1)`;
@@ -19,10 +20,15 @@ const change = (await query(
 
 console.log(`${apply ? "APPLYING" : "DRY RUN"}: revenue counted today ${money(before.counted_revenue)} on ${before.lines.toLocaleString("en-IN")} orders (${before.already_left_out} already left out)`);
 if (!change.length) console.log("Nothing to change.");
+const repeats = await countRepeatedPos();
 for (const c of change) console.log(`  ${String(c.lines).padStart(5)} orders  ${money(c.revenue).padStart(16)}  status "${c.status}"`);
+
+console.log(`  ${String(repeats.n).padStart(5)} orders  ${money(repeats.amount).padStart(16)}  the same PO entered again (same client, PO number and amount)`);
 
 if (apply) {
   const r = await query(`UPDATE purchases SET counted = NOT (${NOT_A_SALE}) WHERE counted IS DISTINCT FROM NOT (${NOT_A_SALE}) RETURNING id`);
+  const marked = await markRepeatedPos();
+  console.log(`Marked or released ${marked} repeated-PO orders.`);
   const after = (await query(`SELECT COALESCE(sum(amount), 0)::float8 AS revenue FROM sales WHERE client_id IS NOT NULL`)).rows[0];
   console.log(`Updated ${r.rows.length} orders. Revenue now ${money(after.revenue)} (was ${money(before.counted_revenue)}).`);
 } else {

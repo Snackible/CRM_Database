@@ -5,7 +5,7 @@ process.env.ACCOUNTS_GID = "42";
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { authenticate, clearAccountsCache, masterMatches, normalizeAccounts, registerAccount, registrationEnabled } from "../lib/accounts.js";
+import { authenticate, clearAccountsCache, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled } from "../lib/accounts.js";
 import { createSessionValue, readSessionValue } from "../lib/session.js";
 import { cleanEmail, cleanPhone } from "../lib/contacts.js";
 
@@ -156,4 +156,30 @@ test("the accounts sheet can never be used as an order feed", async () => {
   assert.throws(() => sheetIdFrom(`https://docs.google.com/spreadsheets/d/${id}/edit#gid=1`), /sign-in accounts/);
   assert.throws(() => sheetIdFrom(id), /sign-in accounts/);
   assert.equal(sheetIdFrom("https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit"), "1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789");
+});
+
+test("a signed-in person is checked against the sheet again: ops, blanks and removed people are out, role changes apply", async () => {
+  const session = (username, role = "b2b") => ({ username, name: username, role });
+  const check = async (rows, s) => { clearAccountsCache(); return liveAccount(s, { configured: true, ...fakeSheet(rows).deps }); };
+
+  // still a b2b: in, with the name and role the sheet has now
+  assert.deepEqual(await check(people(), session("meera")), { username: "meera", name: "Meera Rao", role: "b2b" });
+  // promoted or demoted: the new role applies at once
+  assert.equal((await check(people(), session("meera", "admin"))).role, "b2b");
+  assert.equal((await check(people(), session("aditi", "b2b"))).role, "admin");
+  // moved to ops, or role cleared: out
+  const toOps = people().map((r) => (r.username === "meera" ? { ...r, role: "ops" } : r));
+  assert.equal(await check(toOps, session("meera")), null);
+  const noRole = people().map((r) => (r.username === "karan" ? { ...r, role: "" } : r));
+  assert.equal(await check(noRole, session("karan")), null);
+  // an ops account never had a way in, and a cookie made for one would not work either
+  assert.equal(await check(people(), session("opsy")), null);
+  // removed from the sheet: out
+  assert.equal(await check(people().filter((r) => r.username !== "meera"), session("meera")), null);
+  // the sheet cannot be read: a session that was valid is kept, so a Google outage does not lock the team out
+  clearAccountsCache();
+  const broken = { configured: true, read: async () => { throw new Error("down"); }, tabTitle: async () => "Users" };
+  assert.deepEqual(await liveAccount(session("meera"), broken), session("meera"));
+  // no accounts sheet configured (local trial): the session stands
+  assert.deepEqual(await liveAccount(session("anyone"), { configured: false }), session("anyone"));
 });

@@ -31,7 +31,9 @@ Columns (same as the Delivery Tracker users sheet): `username | password | role 
 | `admin`, `master-admin` | yes | also: delete a client, undo an import, download the backup, remove sample data, manage Google Sheet order feeds |
 | `ops`, blank | no | contacts only |
 
-A row with no username or password can never sign in. Check the sheet is readable and shaped right (prints no passwords):
+A row with no username or password can never sign in. Only `b2b`, `admin` and `master-admin` get in; `ops` (and any other role) is refused with "not set up for the CRM".
+
+Signing in happens once, but the cookie lasts 12 hours, so every request also checks the person against the sheet (read at most once a minute): change someone to `ops`, clear their role or remove their row and they are signed out within about a minute, and a promotion or demotion applies at once. If Google cannot be reached, people who are already signed in stay in so an outage does not lock the team out; new sign-ins still need the sheet. Check the sheet is readable and shaped right (prints no passwords):
 
 ```bash
 npm run check-accounts
@@ -59,6 +61,8 @@ Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order val
 ## What counts as a sale
 
 An order sheet's STATUS column also lists orders that are not sales: **Duplicate**, **Cancelled**, **RTO** (returned to origin, in any stage) and **Internal PO**. They stay on file and show struck through on the client's order list, but are left out of revenue, order counts, standings, the Overview, Insights and the chat. Every other status (Delivered, Pending, In-Transit, blank) counts. The rule is in `lib/status.js`, and the totals read the `sales` view, which is the orders that count.
+
+The same marketplace PO entered twice (same client, same PO number, same amount) counts once: the first copy stays, later copies are marked "Repeated PO" and left out (`lib/sales.js`). A PO with a different amount, or with no amount, is never treated as a repeat, and if the first copy is cancelled the second one counts instead.
 
 An order's status can change in the sheet after it was first loaded (Pending, then Cancelled). Each time a sheet is read again, orders already on file are brought up to date, so a cancellation reaches the totals. To apply the rule to orders loaded before it existed, run `npm run recount-sales` (dry run) and `npm run recount-sales -- --apply`.
 
