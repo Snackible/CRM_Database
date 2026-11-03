@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AlertTriangle, Download } from "lucide-react";
-import { dateLabel } from "@/lib/format";
+import { dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
 
-export default function ImportsView({ imports, sample, isAdmin }) {
+export default function ImportsView({ imports, sample, hidden = [], isAdmin }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,6 +26,7 @@ export default function ImportsView({ imports, sample, isAdmin }) {
   }
   const undo = (i) => confirm(`Remove the ${i.added + i.unmatched} purchase rows that “${i.filename}” added?`) && act(() => api(`/api/imports/${i.id}`, { method: "DELETE" }));
   const removeSample = () => confirm(`Delete the ${sample} sample clients and everything attached to them?`) && act(() => api("/api/sample", { method: "DELETE" }));
+  const unhide = (c) => act(() => api(`/api/clients/${c.id}`, { method: "PATCH", body: { hidden: false } }));
 
   return (
     <>
@@ -75,6 +77,27 @@ export default function ImportsView({ imports, sample, isAdmin }) {
           </div>
         </div>
       </section>}
+
+      {isAdmin && hidden.length > 0 && (
+        <section className="panel" aria-labelledby="hid-h">
+          <div className="panel-head"><h2 id="hid-h">Hidden clients</h2><span className="sub">Left out of the Overview, Clients, search and every total; order history untouched</span></div>
+          <div className="table-wrap">
+            <table className="tbl">
+              <thead><tr><th>Client</th><th className="num">Orders</th><th className="num">Revenue</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <tbody>
+                {hidden.map((c) => (
+                  <tr key={c.id}>
+                    <td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td>
+                    <td className="num">{c.orders}</td>
+                    <td className="num">{money(c.revenue)}</td>
+                    <td className="num"><button className="btn sm" disabled={busy} onClick={() => unhide(c)}>Unhide</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {isAdmin && sample > 0 && (
         <section className="panel" aria-labelledby="smp-h">

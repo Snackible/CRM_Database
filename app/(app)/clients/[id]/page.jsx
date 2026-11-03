@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import ClientView from "@/components/ClientView";
+import { currentAccount } from "@/lib/http";
 import { getClientDetail } from "@/lib/queries";
 
 export async function generateMetadata({ params }) {
@@ -10,7 +11,7 @@ export async function generateMetadata({ params }) {
 
 export default async function ClientPage({ params }) {
   const { id } = await params;
-  const detail = await getClientDetail(Number(id));
+  const [detail, account] = await Promise.all([getClientDetail(Number(id)), currentAccount()]);
   if (!detail) notFound();
-  return <ClientView {...detail} />;
+  return <ClientView {...detail} isAdmin={account?.role === "admin"} />;
 }

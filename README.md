@@ -66,6 +66,14 @@ The same marketplace PO entered twice (same client, same PO number, same amount)
 
 An order's status can change in the sheet after it was first loaded (Pending, then Cancelled). Each time a sheet is read again, orders already on file are brought up to date, so a cancellation reaches the totals. To apply the rule to orders loaded before it existed, run `npm run recount-sales` (dry run) and `npm run recount-sales -- --apply`.
 
+## Hiding a client
+
+An admin can hide a client (the "Hide" button on its page, or unhide it from the same page or **Imports & backup, Hidden clients**). A hidden client is left out of the Overview, Clients, Leads, search, the chat and every total — but its own page still opens, and its full order history is untouched; nothing is deleted. This is for accounts that are not really B2B clients, such as the quick-commerce platforms themselves (Zepto, Blinkit's distributor, Scootsy, Big Basket, Flipkart Minutes) when their orders are already counted through another channel. A new order for a hidden client (from a sheet) still loads and still counts toward *its own* figures on its own page; it just stays off the dashboard. `scripts/hide-platform-clients.mjs` (dry run, then `-- --apply`) is the script that was used to hide the first batch; it verifies each client's name before touching it.
+
+## Lead stages
+
+Each lead has a **Stage** (New, Contacted, Qualified, Negotiating, Won, Lost — `lib/constants.js`), editable right from the Leads page: pick a value from the dropdown in any row and it saves immediately. The Leads page also filters by stage, including "No stage set" for leads nobody has triaged yet. Anyone signed in can set a stage; only hiding a client needs an admin.
+
 ## The chat (Ask)
 
 The chat button in the top bar opens a chat about your own data: how the business is doing, comparisons between periods, who is ordering less, top clients, and questions about one client (profile, last order, orders, products, notes, terms, contacts, next order due). Name a client once and “they” or “their” keeps meaning that client; on a client's page it starts out about that client. “note: …” drafts a note that is saved only when you press Save.

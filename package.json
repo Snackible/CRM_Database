@@ -15,7 +15,8 @@
     "copy-to-postgres": "node --env-file=.env.local scripts/copy-local-to-postgres.mjs",
     "merge-po-clients": "node --env-file=.env.local scripts/merge-po-clients.mjs",
     "merge-name-variants": "node --env-file=.env.local scripts/merge-name-variants.mjs",
-    "recount-sales": "node --env-file=.env.local scripts/recount-sales.mjs"
+    "recount-sales": "node --env-file=.env.local scripts/recount-sales.mjs",
+    "hide-platform-clients": "node --env-file=.env.local scripts/hide-platform-clients.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.61.0",

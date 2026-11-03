@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2 } from "lucide-react";
+import { EyeOff, FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2 } from "lucide-react";
 import { FACT_CATEGORIES } from "@/lib/constants";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -13,7 +13,7 @@ import NoteComposer from "@/components/NoteComposer";
 const SRC = { manual: "Manual", note: "Note", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
 const TL_ICON = { note: StickyNote, document: FileText, purchase: ReceiptText };
 
-export default function ClientView({ client, insights = [], contacts, facts, purchases, timeline }) {
+export default function ClientView({ client, insights = [], contacts, facts, purchases, timeline, isAdmin = false }) {
   const router = useRouter();
   const [composer, setComposer] = useState(null); // "note" | "fact" | null
   const [fact, setFact] = useState({ category: "Commercial", key: "", value: "" });
@@ -55,9 +55,23 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
   const removeNote = (id) => {
     if (confirm("Delete this note?")) run(() => api(`/api/notes/${id}`, { method: "DELETE" }));
   };
+  const toggleHidden = () => {
+    const next = !client.hidden;
+    if (next && !confirm(`Hide ${client.name} from the Overview, Clients, search and every total? The order history stays, and this only an admin can undo.`)) return;
+    run(() => api(`/api/clients/${client.id}`, { method: "PATCH", body: { hidden: next } }));
+  };
 
   return (
     <>
+      {client.hidden && (
+        <div className="notice" role="status" style={{ marginBottom: 16 }}>
+          <EyeOff size={20} aria-hidden="true" />
+          <div>
+            Hidden from the Overview, Clients list, search and every total. Its order history and figures on this page are unaffected.
+            {isAdmin && <> <button className="btn quiet sm" style={{ padding: 0, height: "auto" }} onClick={toggleHidden} disabled={busy}>Unhide it</button></>}
+          </div>
+        </div>
+      )}
       <div className="client-head">
         <div>
           <h1>{client.name}</h1>
@@ -75,6 +89,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
           <Link className="btn" href={`/purchases/new?client=${client.id}`}><Receipt size={17} aria-hidden="true" /> Purchase</Link>
           <Link className="btn" href={`/documents/new?client=${client.id}`}><FileText size={17} aria-hidden="true" /> Document</Link>
           <button className="btn primary" onClick={() => window.dispatchEvent(new Event("crm:chat"))}><MessageSquare size={17} aria-hidden="true" /> Ask about this client</button>
+          {isAdmin && !client.hidden && <button className="btn quiet danger" onClick={toggleHidden} disabled={busy}><EyeOff size={17} aria-hidden="true" /> Hide</button>}
         </div>
       </div>
 

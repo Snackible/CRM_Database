@@ -12,9 +12,10 @@ import { parseNumber, parseDate, identityKey, nameSimilarity, looseNameKey, read
 import { parseCsv } from "../lib/csv.js";
 import { guessMapping } from "../lib/fields.js";
 import { suggestFacts } from "../lib/patterns.js";
-import { addFact, addNote, addPurchases, createClient, deleteClient, linkUnmatched, saveDocument, undoImport } from "../lib/services.js";
+import { addFact, addNote, addPurchases, createClient, deleteClient, linkUnmatched, saveDocument, undoImport, updateClient } from "../lib/services.js";
 import { finishImport, importBatch, startImport } from "../lib/importer.js";
-import { clientLookup, getClientDetail, importsList, listClients, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
+import { clientLookup, getClientDetail, hiddenClients, importsList, listClients, listLeads, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
+import { totals } from "../lib/insights.js";
 import { createSource, syncIfDue, syncNow, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
 import { chat, cleanContext } from "../lib/chat.js";
@@ -543,6 +544,43 @@ test("the same marketplace PO entered twice counts once; a different amount, or 
   assert.equal(l.R1.counted, false);
   assert.equal(l.R1.status, "Cancelled");
   assert.equal(l.R2.counted, true);
+});
+
+test("hiding a client takes it out of every list, search and total, but not its own page or its order history; only an admin can do it", async () => {
+  const platform = await createClient({ name: "Marketplace Giant Pvt Ltd", owner: "Aditi" }, "Tester");
+  await addPurchases(platform.id, [{ date: isoDay(new Date()), product: "Chips", quantity: 10, rate: 1000, ref: "MG-1" }], "Aditi");
+
+  await assert.rejects(() => updateClient(platform.id, { hidden: true }, { isAdmin: false }), (e) => e.status === 403);
+  const before = await totals("2020-01-01", "2030-01-01");
+
+  await updateClient(platform.id, { hidden: true }, { isAdmin: true });
+
+  assert.equal((await getClientDetail(platform.id)).client.hidden, true); // the client's own page still opens, and says so
+  assert.equal((await getClientDetail(platform.id)).purchases.length, 1); // its order history is untouched
+  assert.ok(!(await listClients()).some((c) => c.id === platform.id));
+  assert.ok(!(await clientLookup("Marketplace Giant")).some((c) => c.id === platform.id));
+  assert.ok(!(await searchAll("Marketplace Giant")).some((h) => h.clientId === platform.id));
+  const after = await totals("2020-01-01", "2030-01-01");
+  assert.equal(Number(after.revenue), Number(before.revenue) - 10000); // its revenue drops out of every total
+  assert.ok((await hiddenClients()).some((c) => c.id === platform.id && c.orders === 1));
+
+  await updateClient(platform.id, { hidden: false }, { isAdmin: true });
+  assert.ok((await listClients()).some((c) => c.id === platform.id)); // unhiding brings it straight back
+  assert.ok(!(await hiddenClients()).some((c) => c.id === platform.id));
+});
+
+test("a lead's stage is editable and filterable from the Leads page", async () => {
+  const lead = (await query(`INSERT INTO clients (name, owner, stage, created_by) VALUES ('Prospect Foods', 'Aditi', 'lead', 'Tester') RETURNING id`)).rows[0];
+
+  assert.equal((await listLeads({})).rows.find((r) => r.id === lead.id).lead_stage, null);
+  await updateClient(lead.id, { leadStage: "Contacted" });
+  assert.equal((await listLeads({})).rows.find((r) => r.id === lead.id).lead_stage, "Contacted");
+  assert.ok((await listLeads({ stage: "Contacted" })).rows.some((r) => r.id === lead.id));
+  assert.ok(!(await listLeads({ stage: "Qualified" })).rows.some((r) => r.id === lead.id));
+
+  await updateClient(lead.id, { leadStage: "not a real stage" }); // an unknown value is dropped, not stored
+  assert.equal((await listLeads({})).rows.find((r) => r.id === lead.id).lead_stage, null);
+  assert.ok((await listLeads({ stage: "(none)" })).rows.some((r) => r.id === lead.id));
 });
 
 test("a note saves with the facts its writer kept, each sourced to the note", async () => {
