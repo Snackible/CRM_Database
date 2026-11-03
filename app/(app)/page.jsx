@@ -4,30 +4,48 @@ import { overview } from "@/lib/queries";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { BerthStrip, StatusChip } from "@/components/Berth";
 import { Bar, Card } from "@/components/Cards";
+import MonthPicker from "@/components/MonthPicker";
+import StageControl from "@/components/StageControl";
 import { byChannel, byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
 import { parsePeriod } from "@/lib/periods";
 import { isoDay } from "@/lib/metrics";
+import { channelPref } from "@/lib/viewPrefs";
 
 export const metadata = { title: "Overview · Snackible CRM" };
 
-// The summaries above the Gone quiet list: this month against the same days last month, standing counts,
-// revenue by month, the biggest clients, channels, first orders and leads waiting.
-async function summaries(today) {
-  const month = parsePeriod("this month", today);
+const monthKeyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const lastDayOf = (y, m) => isoDay(new Date(y, m + 1, 0)); // m is 0-based
+
+/** The period for "This month" (or a chosen past month) and the matching stretch of the month before it. */
+function monthPeriods(viewDate, today) {
+  const isCurrent = monthKeyOf(viewDate) === monthKeyOf(today);
+  const y = viewDate.getFullYear();
+  const m = viewDate.getMonth();
+  const from = isoDay(new Date(y, m, 1));
+  const to = isCurrent ? isoDay(today) : lastDayOf(y, m);
+  const py = m === 0 ? y - 1 : y;
+  const pm = m === 0 ? 11 : m - 1;
+  const prevFrom = isoDay(new Date(py, pm, 1));
+  const prevTo = isCurrent ? isoDay(new Date(py, pm, Math.min(today.getDate(), new Date(py, pm + 1, 0).getDate()))) : lastDayOf(py, pm);
+  return { from, to, prevFrom, prevTo, isCurrent };
+}
+
+// The summaries above the Gone quiet list: the chosen month against the matching stretch of the month before,
+// standing counts, revenue by month, the biggest clients, channels, first orders and leads waiting.
+async function summaries(viewDate, today, channel) {
+  const period = monthPeriods(viewDate, today);
   const year = parsePeriod("this year", today);
-  const lastFrom = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, 1));
-  const lastTo = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, Math.min(today.getDate(), new Date(today.getFullYear(), today.getMonth(), 0).getDate())));
   const [mtd, lastMtd, standing, months, top, channels, fresh, leads] = await Promise.all([
-    totals(month.from, month.to),
-    totals(lastFrom, lastTo),
-    standingCounts(today),
-    byMonth(12, today),
-    topClients(year.from, year.to, 8),
-    byChannel(year.from, year.to),
-    newClients(month.from, month.to, 5),
+    totals(period.from, period.to, channel),
+    totals(period.prevFrom, period.prevTo, channel),
+    standingCounts(today, channel),
+    byMonth(12, today, channel),
+    topClients(year.from, year.to, 8, channel),
+    byChannel(year.from, year.to), // always every channel: this is the card that shows the mix
+    newClients(period.from, period.to, 5, channel),
     leadsSummary("", 5),
   ]);
-  return { mtd, lastMtd, standing, months, top, channels, fresh, leads };
+  return { mtd, lastMtd, standing, months, top, channels, fresh, leads, period };
 }
 
 const pct = (now, before) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
@@ -53,17 +71,34 @@ export default async function Overview({ searchParams }) {
   const limit = SIZES.includes(Number(sp.n)) ? Number(sp.n) : 12;
   const days = DAYS.includes(Number(sp.days)) ? Number(sp.days) : 45;
   const today = new Date();
-  const [o, s] = await Promise.all([overview(today, { sort, limit, days }), summaries(today)]);
+  const currentMonth = monthKeyOf(today);
+  const requestedMonth = /^\d{4}-\d{2}$/.test(sp.month ?? "") ? sp.month : currentMonth;
+  const month = requestedMonth > currentMonth ? currentMonth : requestedMonth; // no peeking at the future
+  const [my, mm] = month.split("-").map(Number);
+  const viewDate = new Date(my, mm - 1, 1);
+  const channel = await channelPref();
+  const [o, s] = await Promise.all([overview(today, { sort, limit, days, channel }), summaries(viewDate, today, channel)]);
   const maxMonth = Math.max(0, ...s.months.map((m) => m.revenue));
   const yearTotal = s.channels.reduce((sum, c) => sum + c.revenue, 0);
   const topShare = yearTotal > 0 ? Math.round((s.top.reduce((sum, c) => sum + c.revenue, 0) / yearTotal) * 100) : 0;
   const avg = (t) => (t.orders ? t.revenue / t.orders : 0);
   const standingTotal = s.standing.reduce((sum, c) => sum + c.n, 0);
   const href = (over) => {
-    const next = { sort, n: limit, days, ...over };
-    const qs = new URLSearchParams({ ...(next.sort !== "recent" ? { sort: next.sort } : {}), ...(next.n !== 12 ? { n: String(next.n) } : {}), ...(next.days !== 45 ? { days: String(next.days) } : {}) }).toString();
+    const next = { sort, n: limit, days, month, ...over };
+    const qs = new URLSearchParams({
+      ...(next.sort !== "recent" ? { sort: next.sort } : {}),
+      ...(next.n !== 12 ? { n: String(next.n) } : {}),
+      ...(next.days !== 45 ? { days: String(next.days) } : {}),
+      ...(next.month !== currentMonth ? { month: next.month } : {}),
+    }).toString();
     return qs ? `/?${qs}` : "/";
   };
+  const monthOptions = Array.from({ length: 18 }, (_, i) => {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const key = monthKeyOf(d);
+    return { key, label: d.toLocaleDateString("en-IN", { month: "long", year: "numeric" }), href: href({ month: key }) };
+  });
+  const monthLabel = viewDate.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
   if (o.total === 0) {
     return (
@@ -84,6 +119,7 @@ export default async function Overview({ searchParams }) {
       <div className="page-head"><div><h1>Overview</h1></div></div>
 
       <p className="lede">
+        {channel && <><b>B2B channel only</b> — </>}
         <b>{o.total.toLocaleString("en-IN")} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months (duplicate, cancelled and returned orders are not counted).{" "}
         <b>{o.attentionCount.toLocaleString("en-IN")}</b> {o.attentionCount === 1 ? "has" : "have"} gone quiet
         {o.unmatched.rows > 0 ? <>, and <b>{o.unmatched.rows} purchase {o.unmatched.rows === 1 ? "row is" : "rows are"}</b> waiting to be matched to a client</> : null}.
@@ -91,13 +127,21 @@ export default async function Overview({ searchParams }) {
 
       <div className="ov-grid">
         <div>
-          <Card title="This month so far" sub={`1 to ${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, against the same days last month`}>
+          <Card
+            title={s.period.isCurrent ? "This month so far" : monthLabel}
+            sub={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                {s.period.isCurrent ? `1 to ${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, against the same days last month` : "Against the same stretch of the month before, both in full"}
+                <MonthPicker value={month} options={monthOptions} />
+              </span>
+            }
+          >
             <dl className="fig-list">
               <div className="lead"><dt>Revenue</dt><dd>{money(s.mtd.revenue)}<Change now={s.mtd.revenue} before={s.lastMtd.revenue} /></dd></div>
               <div><dt>Orders</dt><dd>{s.mtd.orders.toLocaleString("en-IN")}<Change now={s.mtd.orders} before={s.lastMtd.orders} /></dd></div>
               <div><dt>Clients ordering</dt><dd>{s.mtd.clients.toLocaleString("en-IN")}<Change now={s.mtd.clients} before={s.lastMtd.clients} /></dd></div>
               <div><dt>Average order</dt><dd>{money(avg(s.mtd))}<Change now={avg(s.mtd)} before={avg(s.lastMtd)} /></dd></div>
-              <div><dt>Same days last month</dt><dd className="muted">{money(s.lastMtd.revenue)}</dd></div>
+              <div><dt>{s.period.isCurrent ? "Same days last month" : "Month before"}</dt><dd className="muted">{money(s.lastMtd.revenue)}</dd></div>
             </dl>
           </Card>
 
@@ -117,28 +161,17 @@ export default async function Overview({ searchParams }) {
             )}
           </Card>
 
-          <Card title="Revenue by channel" sub="This year">
-            <table className="tbl">
-              <tbody>
-                {s.channels.map((c) => (
-                  <tr key={c.channel}>
-                    <td style={{ width: 110 }}>{c.channel}</td>
-                    <td style={{ width: "40%" }}><Bar value={c.revenue} max={s.channels[0]?.revenue ?? 0} /></td>
-                    <td className="num nowrap">{money(c.revenue)}</td>
-                    <td className="num col-hide">{yearTotal ? Math.round((c.revenue / yearTotal) * 100) : 0}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
         </div>
 
         <div>
           <Card title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
-            <table className="tbl">
+            <table className="tbl tbl-link">
               <tbody>
                 {s.standing.map((c) => (
-                  <tr key={c.standing}><td><StatusChip standing={c.standing} /></td><td className="num">{c.n.toLocaleString("en-IN")}</td></tr>
+                  <tr key={c.standing}>
+                    <td><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}><StatusChip standing={c.standing} /></Link></td>
+                    <td className="num"><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}>{c.n.toLocaleString("en-IN")}</Link></td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -154,8 +187,8 @@ export default async function Overview({ searchParams }) {
             </table>
           </Card>
 
-          <Card title="New clients this month" sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
-            {s.fresh.rows.length === 0 ? <div className="empty">No first orders yet this month.</div> : (
+          <Card title={s.period.isCurrent ? "New clients this month" : `New clients, ${monthLabel}`} sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
+            {s.fresh.rows.length === 0 ? <div className="empty">{s.period.isCurrent ? "No first orders yet this month." : `No first orders in ${monthLabel}.`}</div> : (
               <table className="tbl">
                 <tbody>
                   {s.fresh.rows.map((c) => (
@@ -171,7 +204,11 @@ export default async function Overview({ searchParams }) {
               <table className="tbl">
                 <tbody>
                   {s.leads.rows.map((l) => (
-                    <tr key={l.id}><td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td><td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td></tr>
+                    <tr key={l.id}>
+                      <td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td>
+                      <td><StageControl stage={l.lead_stage} size="sm" /></td>
+                      <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

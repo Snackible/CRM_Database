@@ -5,6 +5,8 @@ import { byChannel, byMonth, leadsSummary, newClients, quietRegulars, topClients
 import { parsePeriod } from "@/lib/periods";
 import { isoDay } from "@/lib/metrics";
 import { agoLabel, dateLabel, money } from "@/lib/format";
+import { channelPref } from "@/lib/viewPrefs";
+import StageControl from "@/components/StageControl";
 
 export const metadata = { title: "Insights · Snackible CRM" };
 
@@ -15,15 +17,16 @@ export default async function InsightsPage() {
   // Same stretch of last month (1st to today's date) so a half-finished month is compared fairly.
   const lastFrom = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, 1));
   const lastTo = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, Math.min(today.getDate(), new Date(today.getFullYear(), today.getMonth(), 0).getDate())));
+  const channel = await channelPref();
 
   const [mtd, lastMtd, months, top, quiet, fresh, channels, leads] = await Promise.all([
-    totals(month.from, month.to),
-    totals(lastFrom, lastTo),
-    byMonth(12, today),
-    topClients(year.from, year.to, 8),
-    quietRegulars(8),
-    newClients(month.from, month.to, 5),
-    byChannel(year.from, year.to),
+    totals(month.from, month.to, channel),
+    totals(lastFrom, lastTo, channel),
+    byMonth(12, today, channel),
+    topClients(year.from, year.to, 8, channel),
+    quietRegulars(8, channel),
+    newClients(month.from, month.to, 5, channel),
+    byChannel(year.from, year.to), // always every channel: this is the card that shows the mix
     leadsSummary("", 5),
   ]);
   const change = lastMtd.revenue > 0 ? Math.round(((mtd.revenue - lastMtd.revenue) / lastMtd.revenue) * 100) : null;
@@ -36,7 +39,7 @@ export default async function InsightsPage() {
       <div className="page-head">
         <div>
           <h1>Insights</h1>
-          <p>Worked out from the orders and leads in the CRM each time you open this page. Ask a question below, or read the cards.</p>
+          <p>Worked out from the orders and leads in the CRM each time you open this page. Ask a question below, or read the cards.{channel && <> Showing <b>B2B channel only</b> — the channel toggle is in the sidebar.</>}</p>
         </div>
       </div>
 
@@ -130,7 +133,11 @@ export default async function InsightsPage() {
               <table className="tbl">
                 <tbody>
                   {leads.rows.map((l) => (
-                    <tr key={l.id}><td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td><td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td></tr>
+                    <tr key={l.id}>
+                      <td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td>
+                      <td><StageControl stage={l.lead_stage} size="sm" /></td>
+                      <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

@@ -37,7 +37,8 @@ export function BerthStrip({ client, mini = false, labels = false }) {
   );
 }
 
+const STANDING_CLASS = { Active: "active", Watch: "watch", Lapsed: "lapsed", New: "new", Lead: "lead" };
+
 export function StatusChip({ standing }) {
-  const cls = standing === "Active" ? "active" : standing === "Watch" ? "watch" : standing === "Lapsed" ? "lapsed" : "new";
-  return <span className={`chip ${cls}`}>{standing}</span>;
+  return <span className={`chip ${STANDING_CLASS[standing] ?? "new"}`}>{standing}</span>;
 }

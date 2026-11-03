@@ -12,14 +12,15 @@ import { parseNumber, parseDate, identityKey, nameSimilarity, looseNameKey, read
 import { parseCsv } from "../lib/csv.js";
 import { guessMapping } from "../lib/fields.js";
 import { suggestFacts } from "../lib/patterns.js";
-import { addFact, addNote, addPurchases, createClient, deleteClient, linkUnmatched, saveDocument, undoImport, updateClient } from "../lib/services.js";
+import { addContact, addFact, addNote, addPurchases, createClient, deleteClient, deleteContact, linkUnmatched, saveDocument, undoImport, updateClient } from "../lib/services.js";
 import { finishImport, importBatch, startImport } from "../lib/importer.js";
 import { clientLookup, getClientDetail, hiddenClients, importsList, listClients, listLeads, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
 import { totals } from "../lib/insights.js";
+import { clientsPage } from "../lib/stats.js";
 import { createSource, syncIfDue, syncNow, syncSource } from "../lib/sheetSync.js";
 import { isoDay } from "../lib/metrics.js";
 import { chat, cleanContext } from "../lib/chat.js";
-import { isSale, statusOf } from "../lib/status.js";
+import { hasAmount, isSale, statusOf } from "../lib/status.js";
 import { GeminiError, callGeminiAcrossKeys } from "../lib/gemini.js";
 import { aiPlanQuestion, cleanAiPlan, forgetCache } from "../lib/aiPlan.js";
 import { closeDb, query } from "../lib/db.js";
@@ -90,6 +91,17 @@ test("notes, facts and documents record who wrote them", async () => {
   assert.ok(d.timeline.some((t) => t.kind === "document" && t.title === "Re: terms"));
   const hits = await searchAll("net 45");
   assert.ok(hits.some((h) => h.type === "Document") && hits.some((h) => h.type === "Fact"));
+});
+
+test("a contact can be added by hand from the client page, and removed", async () => {
+  await assert.rejects(() => addContact(aId, {}, "Aditi"), /name, phone or email/);
+  const { id } = await addContact(aId, { name: "Priya Shah", role: "Procurement", phone: "98100 22091", email: "priya@example.com" }, "Aditi");
+  let d = await getClientDetail(aId);
+  assert.ok(d.contacts.some((c) => c.id === id && c.name === "Priya Shah" && c.role === "Procurement"));
+  await deleteContact(id);
+  d = await getClientDetail(aId);
+  assert.ok(!d.contacts.some((c) => c.id === id));
+  await assert.rejects(() => deleteContact(id), /not found|That contact/i);
 });
 
 test("manual purchases feed the twelve-month strip and the standing", async () => {
@@ -500,6 +512,70 @@ test("duplicate, cancelled and returned orders are kept but never counted, and a
 
   // and reading it a third time with nothing changed updates nothing
   assert.equal((await load([row("S1", 1000, "Cancelled"), row("S2", 2000, "Delivered")])).updated, 0);
+});
+
+test("an order with no amount entered yet is not a sale, and starts counting once ops fills it in", async () => {
+  assert.equal(hasAmount(1000), true);
+  assert.equal(hasAmount(0), false);
+  assert.equal(hasAmount(null), false);
+  assert.equal(hasAmount(undefined), false);
+
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date", STATUS: "sale.extra" };
+  const row = (ref, amount, STATUS = "Monday") => ({ PO: "Blankvalue Foods Pvt Ltd", "Order Value": amount === null ? "" : String(amount), "Ref No": ref, "Order Date": "05-05-2026", STATUS });
+  const load = async (rows) => {
+    const { importId } = await startImport({ filename: "blank-value-test", totalRows: rows.length, mapping, options: { createClients: true }, source: "sheet" }, "t");
+    const r = await importBatch({ importId, offset: 0, rows });
+    await finishImport({ importId });
+    return r;
+  };
+  const id = async () => (await query(`SELECT id FROM clients WHERE name = 'Blankvalue Foods Pvt Ltd'`)).rows[0].id;
+
+  await load([row("B1", null), row("B2", 0), row("B3", 5000)]);
+  const d = await getClientDetail(await id());
+  assert.equal(d.purchases.length, 3);
+  assert.equal(d.client.orderCount, 1); // only B3 counts
+  assert.equal(d.client.revenue, 5000);
+  const byRef = Object.fromEntries(d.purchases.map((p) => [p.order_ref, p]));
+  assert.equal(byRef.B1.counted, false);
+  assert.equal(byRef.B1.status, "No amount yet"); // a stray status word like "Monday" isn't the real reason
+  assert.equal(byRef.B2.counted, false);
+  assert.equal(byRef.B2.status, "No amount yet");
+  assert.equal(byRef.B3.counted, true);
+
+  // the sheet is filled in later: re-reading it brings the order into the figures. A changed amount is fingerprinted
+  // differently (same rule as any other amount correction), so it arrives as a new line, not an update to the old
+  // placeholder row — which stays on file, still excluded, same as a cancelled or duplicate order would.
+  const again = await load([row("B1", 1200), row("B2", 0), row("B3", 5000)]);
+  assert.equal(again.added, 1);
+  assert.equal(again.updated, 0);
+  const d2 = await getClientDetail(await id());
+  assert.equal(d2.purchases.length, 4);
+  assert.equal(d2.client.orderCount, 2);
+  assert.equal(d2.client.revenue, 6200);
+});
+
+test("the channel filter (the B2B/all toggle) keeps only orders on the chosen channel, matched case-insensitively", async () => {
+  const mapping = { PO: "client.name", "Order Value": "sale.amount", "Ref No": "sale.ref", "Order Date": "sale.date", Channel: "sale.channel" };
+  const row = (ref, amount, channel) => ({ PO: "Channeltest Foods Pvt Ltd", "Order Value": String(amount), "Ref No": ref, "Order Date": "05-05-2026", Channel: channel });
+  const { importId } = await startImport({ filename: "channel-test", totalRows: 3, mapping, options: { createClients: true }, source: "sheet" }, "t");
+  await importBatch({ importId, offset: 0, rows: [row("C1", 1000, "B2B"), row("C2", 2000, "b2b"), row("C3", 4000, "AMAZON")] });
+  await finishImport({ importId });
+
+  const both = await totals("2026-01-01", "2026-12-31", "");
+  const b2bOnly = await totals("2026-01-01", "2026-12-31", "b2b");
+  const allExplicit = await totals("2026-01-01", "2026-12-31", "all");
+  assert.equal(both.revenue, allExplicit.revenue); // "all" and "" mean the same thing
+  assert.ok(both.revenue >= 7000);
+  assert.ok(b2bOnly.revenue < both.revenue);
+
+  const id = (await query(`SELECT id FROM clients WHERE name = 'Channeltest Foods Pvt Ltd'`)).rows[0].id;
+  const pageAll = await clientsPage({ q: "Channeltest", channel: "" });
+  const pageB2b = await clientsPage({ q: "Channeltest", channel: "b2b" });
+  const rowAll = pageAll.rows.find((r) => r.id === id);
+  const rowB2b = pageB2b.rows.find((r) => r.id === id);
+  assert.equal(rowAll.revenue, 7000); // every channel
+  assert.equal(rowB2b.revenue, 3000); // B2B and b2b (case-insensitive), not AMAZON
+  assert.equal(rowB2b.orderCount, 2);
 });
 
 test("the same marketplace PO entered twice counts once; a different amount, or a cancelled first copy, does not hide an order", async () => {

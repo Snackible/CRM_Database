@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Phone, Upload } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel } from "@/lib/format";
 import { api } from "@/lib/client-api";
+import StageControl from "@/components/StageControl";
 
 // "(none)" is a real filter value (leads with no stage set yet), distinct from "" (any stage).
 const STAGE_FILTERS = [["", "Any stage"], ...LEAD_STAGES.map((s) => [s, s]), ["(none)", "No stage set"]];
@@ -91,10 +92,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                     </td>
                     <td className="col-hide">{l.owner}</td>
                     <td>
-                      <select className="select" style={{ minWidth: 130 }} aria-label={`Stage for ${l.name}`} value={l.lead_stage ?? ""} disabled={saving === l.id} onChange={(e) => setStage(l, e.target.value)}>
-                        <option value="">Not set</option>
-                        {LEAD_STAGES.map((s) => <option key={s}>{s}</option>)}
-                      </select>
+                      <StageControl stage={l.lead_stage} onChange={(s) => setStage(l, s)} disabled={saving === l.id} size="sm" />
                     </td>
                     <td className="col-hide" style={{ maxWidth: 420 }}>{l.last_note ? (l.last_note.length > 140 ? `${l.last_note.slice(0, 140)}…` : l.last_note) : <span className="muted">No notes</span>}</td>
                     <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "—"}</td>

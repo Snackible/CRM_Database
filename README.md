@@ -3,6 +3,8 @@
 Everything Snackible knows about each B2B client, plus their purchase history. Next.js (App Router) on Vercel, Postgres on Neon.
 Design: [DESIGN.md](DESIGN.md). Product: [PRODUCT.md](PRODUCT.md). Plan: [PLAN.md](PLAN.md).
 
+The running release (`version` in `package.json` plus the git commit, e.g. `v0.2.0 · 861b0d3`) shows on the sign-in page, the sidebar and the phone header — bump `version` with each push (`lib/version.js`).
+
 ## Run it locally
 
 ```bash
@@ -50,7 +52,7 @@ With `ACCOUNTS_SHEET_ID` empty (local trials only) the app falls back to one sha
 Admins connect sheets under **Add, Purchase CSV or sheet**. Share each sheet with the service account as **Viewer**: feeds only read. There are two kinds:
 
 - **Customer orders:** each row is a purchase. It uses the same column mapping, buyer matching, unmatched queue, undo and duplicate protection as a CSV.
-- **Leads and contacts:** each company becomes a lead (a client with no orders yet, shown with a Lead status), its people become contacts, and remarks and follow-ups become notes. Reading the sheet again adds only new or changed rows. Undo removes the leads that import created.
+- **Leads and contacts:** each company becomes a lead (a client with no orders yet, shown with a Lead status), its people become contacts, and remarks and follow-ups become notes. Reading the sheet again adds only new or changed rows. Undo removes the leads that import created. A contact can also be added by hand from a client's own page (the "Contact" button), for anyone a sheet never carried.
 
 Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order value), `Pending delivery` (tab `Sales`, orders with gross sales and the customer's contact person), `BD Ops Sales Tracking Sheet` (tab `Sheet1`, orders without amounts) and `CCBD Tracker` (tabs such as `Follow up` and `Diwali CCBD`, leads).
 
@@ -60,7 +62,7 @@ Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order val
 
 ## What counts as a sale
 
-An order sheet's STATUS column also lists orders that are not sales: **Duplicate**, **Cancelled**, **RTO** (returned to origin, in any stage) and **Internal PO**. They stay on file and show struck through on the client's order list, but are left out of revenue, order counts, standings, the Overview, Insights and the chat. Every other status (Delivered, Pending, In-Transit, blank) counts. The rule is in `lib/status.js`, and the totals read the `sales` view, which is the orders that count.
+An order sheet's STATUS column also lists orders that are not sales: **Duplicate**, **Cancelled**, **RTO** (returned to origin, in any stage) and **Internal PO**. An order with no amount entered yet (blank or 0 "Order Value") is the same: not a sale until it has one. They stay on file and show struck through on the client's order list, but are left out of revenue, order counts, standings, the Overview, Insights and the chat. Every other status (Delivered, Pending, In-Transit, blank) with a real amount counts. The rule is in `lib/status.js`, and the totals read the `sales` view, which is the orders that count. A sync picks up the amount as soon as ops fills it in, and the order starts counting from then on.
 
 The same marketplace PO entered twice (same client, same PO number, same amount) counts once: the first copy stays, later copies are marked "Repeated PO" and left out (`lib/sales.js`). A PO with a different amount, or with no amount, is never treated as a repeat, and if the first copy is cancelled the second one counts instead.
 
@@ -70,9 +72,13 @@ An order's status can change in the sheet after it was first loaded (Pending, th
 
 An admin can hide a client (the "Hide" button on its page, or unhide it from the same page or **Imports & backup, Hidden clients**). A hidden client is left out of the Overview, Clients, Leads, search, the chat and every total — but its own page still opens, and its full order history is untouched; nothing is deleted. This is for accounts that are not really B2B clients, such as the quick-commerce platforms themselves (Zepto, Blinkit's distributor, Scootsy, Big Basket, Flipkart Minutes) when their orders are already counted through another channel. A new order for a hidden client (from a sheet) still loads and still counts toward *its own* figures on its own page; it just stays off the dashboard. `scripts/hide-platform-clients.mjs` (dry run, then `-- --apply`) is the script that was used to hide the first batch; it verifies each client's name before touching it.
 
+## Which channel the dashboard shows
+
+The Overview, Clients and Insights pages default to **B2B channel only** — the toggle in the sidebar (and the filter icon in the top bar on phones) switches to every channel. It is a per-browser setting (a cookie, not an account field), so it never changes what a teammate sees. "Revenue by channel" on Insights always shows every channel regardless, since that is the one place meant to show the mix.
+
 ## Lead stages
 
-Each lead has a **Stage** (New, Contacted, Qualified, Negotiating, Won, Lost — `lib/constants.js`), editable right from the Leads page: pick a value from the dropdown in any row and it saves immediately. The Leads page also filters by stage, including "No stage set" for leads nobody has triaged yet. Anyone signed in can set a stage; only hiding a client needs an admin.
+Each lead has a **Stage** (New, Contacted, Qualified, Negotiating, Won, Lost — `lib/constants.js`), shown as a coloured pill that darkens as a lead moves along (Lost is red, the app's one accent colour) so it reads at a glance and never blends into the standing chip next to it. It is editable from the Leads page, the Overview's and Insights' "Leads waiting" cards (read-only there), and right on the lead's own page next to its "Lead" status — pick a value and it saves immediately. The Leads page also filters by stage, including "No stage set" for leads nobody has triaged yet. Anyone signed in can set a stage; only hiding a client needs an admin.
 
 ## The chat (Ask)
 

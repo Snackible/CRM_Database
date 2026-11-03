@@ -3,20 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EyeOff, FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2 } from "lucide-react";
+import { EyeOff, FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2, UserPlus } from "lucide-react";
 import { FACT_CATEGORIES } from "@/lib/constants";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
 import { BerthStrip, StatusChip } from "@/components/Berth";
 import NoteComposer from "@/components/NoteComposer";
+import StageControl from "@/components/StageControl";
 
 const SRC = { manual: "Manual", note: "Note", document: "Doc", pattern: "Pattern", ai: "AI", csv: "CSV", sheet: "Sheet" };
 const TL_ICON = { note: StickyNote, document: FileText, purchase: ReceiptText };
 
 export default function ClientView({ client, insights = [], contacts, facts, purchases, timeline, isAdmin = false }) {
   const router = useRouter();
-  const [composer, setComposer] = useState(null); // "note" | "fact" | null
+  const [composer, setComposer] = useState(null); // "note" | "fact" | "contact" | null
   const [fact, setFact] = useState({ category: "Commercial", key: "", value: "" });
+  const [person, setPerson] = useState({ name: "", role: "", phone: "", email: "" });
   const [showAll, setShowAll] = useState(false);
   const [showOlder, setShowOlder] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -52,6 +54,18 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
   const removeFact = (f) => {
     if (confirm(`Delete “${f.key}: ${f.value}”?`)) run(() => api(`/api/facts/${f.id}`, { method: "DELETE" }));
   };
+  const savePerson = (e) => {
+    e.preventDefault();
+    if (!person.name.trim() && !person.phone.trim() && !person.email.trim()) return;
+    run(async () => {
+      await api(`/api/clients/${client.id}/contacts`, { method: "POST", body: person });
+      setPerson({ name: "", role: "", phone: "", email: "" });
+      setComposer(null);
+    });
+  };
+  const removePerson = (p) => {
+    if (confirm(`Delete ${p.name || "this contact"}?`)) run(() => api(`/api/contacts/${p.id}`, { method: "DELETE" }));
+  };
   const removeNote = (id) => {
     if (confirm("Delete this note?")) run(() => api(`/api/notes/${id}`, { method: "DELETE" }));
   };
@@ -60,6 +74,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
     if (next && !confirm(`Hide ${client.name} from the Overview, Clients, search and every total? The order history stays, and this only an admin can undo.`)) return;
     run(() => api(`/api/clients/${client.id}`, { method: "PATCH", body: { hidden: next } }));
   };
+  const setStage = (leadStage) => run(() => api(`/api/clients/${client.id}`, { method: "PATCH", body: { leadStage } }));
 
   return (
     <>
@@ -78,6 +93,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
           <div className="client-meta">
             {client.code && <span className="code">{client.code}</span>}
             <StatusChip standing={client.standing} />
+            {client.stage === "lead" && <StageControl stage={client.lead_stage} onChange={setStage} disabled={busy} />}
             {(client.segment || client.city) && <span>{[client.segment, client.city].filter(Boolean).join(" · ")}</span>}
             {client.owner && <span>Owner {client.owner}</span>}
             {client.since && <span>Client since {dateLabel(client.since)}</span>}
@@ -86,6 +102,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
         <div className="quick" role="group" aria-label="Add to this client">
           <button className="btn" aria-expanded={composer === "note"} onClick={() => setComposer(composer === "note" ? null : "note")}><StickyNote size={17} aria-hidden="true" /> Note</button>
           <button className="btn" aria-expanded={composer === "fact"} onClick={() => setComposer(composer === "fact" ? null : "fact")}><ListPlus size={17} aria-hidden="true" /> Fact</button>
+          <button className="btn" aria-expanded={composer === "contact"} onClick={() => setComposer(composer === "contact" ? null : "contact")}><UserPlus size={17} aria-hidden="true" /> Contact</button>
           <Link className="btn" href={`/purchases/new?client=${client.id}`}><Receipt size={17} aria-hidden="true" /> Purchase</Link>
           <Link className="btn" href={`/documents/new?client=${client.id}`}><FileText size={17} aria-hidden="true" /> Document</Link>
           <button className="btn primary" onClick={() => window.dispatchEvent(new Event("crm:chat"))}><MessageSquare size={17} aria-hidden="true" /> Ask about this client</button>
@@ -201,8 +218,36 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
 
           <section className="panel" aria-labelledby="people-h">
             <div className="panel-head"><h2 id="people-h">People</h2></div>
+            {composer === "contact" && (
+              <form className="composer" onSubmit={savePerson}>
+                <div className="grid-3">
+                  <div className="field">
+                    <label htmlFor="p-name">Name</label>
+                    <input id="p-name" className="input" value={person.name} onChange={(e) => setPerson({ ...person, name: e.target.value })} autoFocus />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="p-role">Role</label>
+                    <input id="p-role" className="input" placeholder="Procurement" value={person.role} onChange={(e) => setPerson({ ...person, role: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="p-phone">Phone</label>
+                    <input id="p-phone" className="input" value={person.phone} onChange={(e) => setPerson({ ...person, phone: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="p-email">Email</label>
+                    <input id="p-email" className="input" type="email" value={person.email} onChange={(e) => setPerson({ ...person, email: e.target.value })} />
+                  </div>
+                </div>
+                <div className="row">
+                  <button className="btn primary sm" type="submit" disabled={busy}>Save contact</button>
+                  <button className="btn quiet sm" type="button" onClick={() => setComposer(null)}>Cancel</button>
+                </div>
+              </form>
+            )}
             {contacts.length === 0 ? (
-              <div className="empty">No contacts recorded.</div>
+              <div className="empty">
+                No contacts recorded. <button className="btn quiet sm" style={{ padding: 0, height: "auto" }} onClick={() => setComposer("contact")}>Add a person</button>
+              </div>
             ) : (
               <ul className="people">
                 {contacts.map((p) => (
@@ -212,6 +257,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
                       {p.phone && <div><a href={`tel:${p.phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.phone}</a></div>}
                       {p.email && <div><a href={`mailto:${p.email}`}><Mail size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.email}</a></div>}
                     </div>
+                    <button className="btn quiet sm danger" aria-label={`Delete ${p.name || "contact"}`} onClick={() => removePerson(p)} disabled={busy}><Trash2 size={14} aria-hidden="true" /></button>
                   </li>
                 ))}
               </ul>

@@ -1,6 +1,7 @@
 import ClientList from "@/components/ClientList";
 import { ownerNames } from "@/lib/queries";
 import { clientsPage } from "@/lib/stats";
+import { channelPref } from "@/lib/viewPrefs";
 
 export const metadata = { title: "Clients · Snackible CRM" };
 
@@ -15,7 +16,8 @@ export default async function ClientsPage({ searchParams }) {
   const owner = String(sp.owner ?? "");
   const sort = SORTS.includes(sp.sort) ? sp.sort : "revenue";
   const requested = Math.max(1, Number(sp.page) || 1);
-  const [result, owners] = await Promise.all([clientsPage({ q, standing, owner, sort, page: requested, size: PAGE }), ownerNames()]);
+  const channel = await channelPref();
+  const [result, owners] = await Promise.all([clientsPage({ q, standing, owner, sort, page: requested, size: PAGE, channel }), ownerNames()]);
   const pages = Math.max(1, Math.ceil(result.matched / PAGE));
   const rows = result.rows.map((c) => ({
     id: c.id, name: c.name, code: c.code, segment: c.segment, city: c.city, owner: c.owner, standing: c.standing,
