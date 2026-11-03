@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Phone, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Phone, Upload } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -16,6 +16,9 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
   const router = useRouter();
   const [saving, setSaving] = useState(null); // the lead id currently being saved, or null
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
+  const [editingContact, setEditingContact] = useState(null); // the lead id whose contact is being edited
+  const [contactEdit, setContactEdit] = useState({ name: "", phone: "" });
 
   const link = (patch) => {
     const next = { ...filters, ...patch };
@@ -26,11 +29,12 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
   };
   const go = (patch) => router.replace(link({ ...patch, page: 1 }));
 
-  async function setStage(lead, stage) {
-    setSaving(lead.id);
+  async function save(id, fn) {
+    setSaving(id);
     setError("");
     try {
-      await api(`/api/clients/${lead.id}`, { method: "PATCH", body: { leadStage: stage || null } });
+      const r = await fn();
+      setNote(r?.sheetSynced?.length ? "Also updated in the sheet it came from." : r?.sheetError ? `Saved here, but could not reach the sheet: ${r.sheetError}` : "");
       router.refresh();
     } catch (e) {
       setError(e.message);
@@ -38,6 +42,27 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
       setSaving(null);
     }
   }
+
+  const setStage = (lead, stage) => save(lead.id, () => api(`/api/clients/${lead.id}`, { method: "PATCH", body: { leadStage: stage || null } }));
+  const setOwner = (lead, owner) => {
+    if (owner === (lead.owner ?? "")) return;
+    save(lead.id, () => api(`/api/clients/${lead.id}`, { method: "PATCH", body: { owner } }));
+  };
+  const startEditContact = (lead) => {
+    setContactEdit({ name: lead.contact?.name ?? "", phone: lead.contact?.phone ?? "" });
+    setEditingContact(lead.id);
+  };
+  const saveContact = (e, lead) => {
+    e.preventDefault();
+    const body = contactEdit;
+    save(lead.id, async () => {
+      const r = lead.contact?.id
+        ? await api(`/api/contacts/${lead.contact.id}`, { method: "PATCH", body })
+        : await api(`/api/clients/${lead.id}/contacts`, { method: "POST", body });
+      setEditingContact(null);
+      return r;
+    });
+  };
 
   return (
     <>
@@ -66,6 +91,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
         </form>
 
         {error && <div className="notice" role="alert" style={{ margin: "0 12px 12px" }}>{error}</div>}
+        {!error && note && <div className="notice" role="status" style={{ margin: "0 12px 12px" }}>{note}</div>}
 
         {rows.length === 0 ? (
           <div className="empty">
@@ -86,11 +112,35 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
                     </td>
                     <td>
-                      {l.contact?.name || "—"}
-                      {l.people > 1 ? <span className="muted"> +{l.people - 1}</span> : null}
-                      {l.contact?.phone ? <span className="sub"><a href={`tel:${l.contact.phone.replace(/\s/g, "")}`}><Phone size={13} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {l.contact.phone}</a></span> : null}
+                      {editingContact === l.id ? (
+                        <form className="row" style={{ gap: 4, flexWrap: "nowrap" }} onSubmit={(e) => saveContact(e, l)}>
+                          <input className="input sm" style={{ width: 120 }} placeholder="Name" value={contactEdit.name} onChange={(e) => setContactEdit({ ...contactEdit, name: e.target.value })} autoFocus />
+                          <input className="input sm" style={{ width: 110 }} placeholder="Phone" value={contactEdit.phone} onChange={(e) => setContactEdit({ ...contactEdit, phone: e.target.value })} />
+                          <button className="btn primary sm" type="submit" disabled={saving === l.id}>Save</button>
+                          <button className="btn quiet sm" type="button" onClick={() => setEditingContact(null)}>Cancel</button>
+                        </form>
+                      ) : (
+                        <>
+                          {l.contact?.name || "—"}
+                          {l.people > 1 ? <span className="muted"> +{l.people - 1}</span> : null}
+                          {l.contact?.phone ? <span className="sub"><a href={`tel:${l.contact.phone.replace(/\s/g, "")}`}><Phone size={13} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {l.contact.phone}</a></span> : null}
+                          <button className="btn quiet sm" aria-label={`Edit contact for ${l.name}`} style={{ marginLeft: 6, padding: 0, height: "auto" }} onClick={() => startEditContact(l)} disabled={saving === l.id}>
+                            <Pencil size={13} aria-hidden="true" />
+                          </button>
+                        </>
+                      )}
                     </td>
-                    <td className="col-hide">{l.owner}</td>
+                    <td className="col-hide">
+                      <input
+                        className="input sm"
+                        style={{ width: "100%", minWidth: 100 }}
+                        defaultValue={l.owner ?? ""}
+                        aria-label={`Owner for ${l.name}`}
+                        disabled={saving === l.id}
+                        onBlur={(e) => setOwner(l, e.target.value.trim())}
+                        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                      />
+                    </td>
                     <td>
                       <StageControl stage={l.lead_stage} onChange={(s) => setStage(l, s)} disabled={saving === l.id} size="sm" />
                     </td>

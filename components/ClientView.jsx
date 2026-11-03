@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EyeOff, FileText, ListPlus, Mail, MessageSquare, Phone, Receipt, ReceiptText, StickyNote, Trash2, UserPlus } from "lucide-react";
+import { EyeOff, FileText, ListPlus, Mail, MessageSquare, Pencil, Phone, Receipt, ReceiptText, StickyNote, Trash2, UserPlus } from "lucide-react";
 import { FACT_CATEGORIES } from "@/lib/constants";
 import { agoLabel, dateLabel, money } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -19,10 +19,15 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
   const [composer, setComposer] = useState(null); // "note" | "fact" | "contact" | null
   const [fact, setFact] = useState({ category: "Commercial", key: "", value: "" });
   const [person, setPerson] = useState({ name: "", role: "", phone: "", email: "" });
+  const [headEdit, setHeadEdit] = useState(false);
+  const [head, setHead] = useState({ name: client.name, owner: client.owner ?? "" });
+  const [editingContact, setEditingContact] = useState(null); // the contact id being edited, or null
+  const [contactEdit, setContactEdit] = useState({ name: "", role: "", phone: "", email: "" });
   const [showAll, setShowAll] = useState(false);
   const [showOlder, setShowOlder] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
 
   const groups = FACT_CATEGORIES.map((cat) => ({ cat, items: facts.filter((f) => f.category === cat) })).filter((g) => g.items.length);
   const shownPurchases = showAll ? purchases : purchases.slice(0, 10);
@@ -33,7 +38,10 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
     setBusy(true);
     setError("");
     try {
-      await fn();
+      const r = await fn();
+      if (r?.sheetSynced?.length) setNote(`Also updated in the sheet it came from (${r.sheetSynced.join(", ")}).`);
+      else if (r?.sheetError) setNote(`Saved here, but could not reach the sheet: ${r.sheetError}`);
+      else setNote("");
       router.refresh();
     } catch (e) {
       setError(e.message);
@@ -66,6 +74,28 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
   const removePerson = (p) => {
     if (confirm(`Delete ${p.name || "this contact"}?`)) run(() => api(`/api/contacts/${p.id}`, { method: "DELETE" }));
   };
+  const saveHead = (e) => {
+    e.preventDefault();
+    if (!head.name.trim()) return;
+    run(async () => {
+      const r = await api(`/api/clients/${client.id}`, { method: "PATCH", body: { name: head.name, owner: head.owner } });
+      setHeadEdit(false);
+      return r;
+    });
+  };
+  const startEditContact = (p) => {
+    setContactEdit({ name: p.name ?? "", role: p.role ?? "", phone: p.phone ?? "", email: p.email ?? "" });
+    setEditingContact(p.id);
+  };
+  const saveContact = (e) => {
+    e.preventDefault();
+    const id = editingContact;
+    run(async () => {
+      const r = await api(`/api/contacts/${id}`, { method: "PATCH", body: contactEdit });
+      setEditingContact(null);
+      return r;
+    });
+  };
   const removeNote = (id) => {
     if (confirm("Delete this note?")) run(() => api(`/api/notes/${id}`, { method: "DELETE" }));
   };
@@ -89,7 +119,31 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
       )}
       <div className="client-head">
         <div>
-          <h1>{client.name}</h1>
+          {headEdit ? (
+            <form className="composer" onSubmit={saveHead} style={{ marginBottom: 12 }}>
+              <div className="grid-3">
+                <div className="field">
+                  <label htmlFor="h-name">Name</label>
+                  <input id="h-name" className="input" value={head.name} onChange={(e) => setHead({ ...head, name: e.target.value })} autoFocus />
+                </div>
+                <div className="field">
+                  <label htmlFor="h-owner">Owner</label>
+                  <input id="h-owner" className="input" value={head.owner} onChange={(e) => setHead({ ...head, owner: e.target.value })} />
+                </div>
+              </div>
+              <div className="row">
+                <button className="btn primary sm" type="submit" disabled={busy}>Save</button>
+                <button className="btn quiet sm" type="button" onClick={() => { setHeadEdit(false); setHead({ name: client.name, owner: client.owner ?? "" }); }}>Cancel</button>
+              </div>
+            </form>
+          ) : (
+            <h1>
+              {client.name}
+              <button className="btn quiet sm" aria-label="Edit name and owner" title="Edit name and owner" style={{ marginLeft: 10, verticalAlign: "middle" }} onClick={() => setHeadEdit(true)}>
+                <Pencil size={15} aria-hidden="true" />
+              </button>
+            </h1>
+          )}
           <div className="client-meta">
             {client.code && <span className="code">{client.code}</span>}
             <StatusChip standing={client.standing} />
@@ -97,6 +151,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
             {(client.segment || client.city) && <span>{[client.segment, client.city].filter(Boolean).join(" · ")}</span>}
             {client.owner && <span>Owner {client.owner}</span>}
             {client.since && <span>Client since {dateLabel(client.since)}</span>}
+            {client.lead_synced && <span title="Editing the name or owner here also tries to update the sheet this lead came from">Synced with sheet</span>}
           </div>
         </div>
         <div className="quick" role="group" aria-label="Add to this client">
@@ -111,6 +166,7 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
       </div>
 
       {error && <div className="notice" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
+      {!error && note && <div className="notice" role="status" style={{ marginBottom: 16 }}>{note}</div>}
 
       <div className="cp-top">
         <div>
@@ -250,16 +306,48 @@ export default function ClientView({ client, insights = [], contacts, facts, pur
               </div>
             ) : (
               <ul className="people">
-                {contacts.map((p) => (
-                  <li key={p.id}>
-                    <div><b>{p.name || "Unnamed"}</b><div className="role">{p.role}</div></div>
-                    <div className="reach">
-                      {p.phone && <div><a href={`tel:${p.phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.phone}</a></div>}
-                      {p.email && <div><a href={`mailto:${p.email}`}><Mail size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.email}</a></div>}
-                    </div>
-                    <button className="btn quiet sm danger" aria-label={`Delete ${p.name || "contact"}`} onClick={() => removePerson(p)} disabled={busy}><Trash2 size={14} aria-hidden="true" /></button>
-                  </li>
-                ))}
+                {contacts.map((p) =>
+                  editingContact === p.id ? (
+                    <li key={p.id}>
+                      <form className="composer" onSubmit={saveContact} style={{ gridColumn: "1 / -1" }}>
+                        <div className="grid-3">
+                          <div className="field">
+                            <label htmlFor="c-name">Name</label>
+                            <input id="c-name" className="input" value={contactEdit.name} onChange={(e) => setContactEdit({ ...contactEdit, name: e.target.value })} autoFocus />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="c-role">Role</label>
+                            <input id="c-role" className="input" value={contactEdit.role} onChange={(e) => setContactEdit({ ...contactEdit, role: e.target.value })} />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="c-phone">Phone</label>
+                            <input id="c-phone" className="input" value={contactEdit.phone} onChange={(e) => setContactEdit({ ...contactEdit, phone: e.target.value })} />
+                          </div>
+                          <div className="field">
+                            <label htmlFor="c-email">Email</label>
+                            <input id="c-email" className="input" type="email" value={contactEdit.email} onChange={(e) => setContactEdit({ ...contactEdit, email: e.target.value })} />
+                          </div>
+                        </div>
+                        <div className="row">
+                          <button className="btn primary sm" type="submit" disabled={busy}>Save</button>
+                          <button className="btn quiet sm" type="button" onClick={() => setEditingContact(null)}>Cancel</button>
+                        </div>
+                      </form>
+                    </li>
+                  ) : (
+                    <li key={p.id}>
+                      <div><b>{p.name || "Unnamed"}</b><div className="role">{p.role}</div></div>
+                      <div className="reach">
+                        {p.phone && <div><a href={`tel:${p.phone.replace(/\s/g, "")}`}><Phone size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.phone}</a></div>}
+                        {p.email && <div><a href={`mailto:${p.email}`}><Mail size={14} aria-hidden="true" style={{ verticalAlign: "-2px" }} /> {p.email}</a></div>}
+                      </div>
+                      <span className="row" style={{ gap: 4 }}>
+                        <button className="btn quiet sm" aria-label={`Edit ${p.name || "contact"}`} title={p.lead_synced ? "Editing this also tries to update the sheet it came from" : "Edit"} onClick={() => startEditContact(p)} disabled={busy}><Pencil size={14} aria-hidden="true" /></button>
+                        <button className="btn quiet sm danger" aria-label={`Delete ${p.name || "contact"}`} onClick={() => removePerson(p)} disabled={busy}><Trash2 size={14} aria-hidden="true" /></button>
+                      </span>
+                    </li>
+                  ),
+                )}
               </ul>
             )}
           </section>

@@ -6,10 +6,9 @@ import { BerthStrip, StatusChip } from "@/components/Berth";
 import { Bar, Card } from "@/components/Cards";
 import MonthPicker from "@/components/MonthPicker";
 import StageControl from "@/components/StageControl";
-import { byChannel, byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
+import { byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
 import { parsePeriod } from "@/lib/periods";
 import { isoDay } from "@/lib/metrics";
-import { channelPref } from "@/lib/viewPrefs";
 
 export const metadata = { title: "Overview · Snackible CRM" };
 
@@ -31,21 +30,21 @@ function monthPeriods(viewDate, today) {
 }
 
 // The summaries above the Gone quiet list: the chosen month against the matching stretch of the month before,
-// standing counts, revenue by month, the biggest clients, channels, first orders and leads waiting.
+// standing counts, revenue by month, the biggest clients, first orders and leads waiting. B2B channel only.
 async function summaries(viewDate, today, channel) {
   const period = monthPeriods(viewDate, today);
   const year = parsePeriod("this year", today);
-  const [mtd, lastMtd, standing, months, top, channels, fresh, leads] = await Promise.all([
+  const [mtd, lastMtd, standing, months, top, yearTotal, fresh, leads] = await Promise.all([
     totals(period.from, period.to, channel),
     totals(period.prevFrom, period.prevTo, channel),
     standingCounts(today, channel),
     byMonth(12, today, channel),
     topClients(year.from, year.to, 8, channel),
-    byChannel(year.from, year.to), // always every channel: this is the card that shows the mix
+    totals(year.from, year.to, channel),
     newClients(period.from, period.to, 5, channel),
     leadsSummary("", 5),
   ]);
-  return { mtd, lastMtd, standing, months, top, channels, fresh, leads, period };
+  return { mtd, lastMtd, standing, months, top, yearTotal: yearTotal.revenue, fresh, leads, period };
 }
 
 const pct = (now, before) => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
@@ -76,11 +75,10 @@ export default async function Overview({ searchParams }) {
   const month = requestedMonth > currentMonth ? currentMonth : requestedMonth; // no peeking at the future
   const [my, mm] = month.split("-").map(Number);
   const viewDate = new Date(my, mm - 1, 1);
-  const channel = await channelPref();
+  const channel = "b2b";
   const [o, s] = await Promise.all([overview(today, { sort, limit, days, channel }), summaries(viewDate, today, channel)]);
   const maxMonth = Math.max(0, ...s.months.map((m) => m.revenue));
-  const yearTotal = s.channels.reduce((sum, c) => sum + c.revenue, 0);
-  const topShare = yearTotal > 0 ? Math.round((s.top.reduce((sum, c) => sum + c.revenue, 0) / yearTotal) * 100) : 0;
+  const topShare = s.yearTotal > 0 ? Math.round((s.top.reduce((sum, c) => sum + c.revenue, 0) / s.yearTotal) * 100) : 0;
   const avg = (t) => (t.orders ? t.revenue / t.orders : 0);
   const standingTotal = s.standing.reduce((sum, c) => sum + c.n, 0);
   const href = (over) => {
@@ -119,8 +117,7 @@ export default async function Overview({ searchParams }) {
       <div className="page-head"><div><h1>Overview</h1></div></div>
 
       <p className="lede">
-        {channel && <><b>B2B channel only</b> — </>}
-        <b>{o.total.toLocaleString("en-IN")} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months (duplicate, cancelled and returned orders are not counted).{" "}
+        <b>B2B channel only</b> — <b>{o.total.toLocaleString("en-IN")} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months (duplicate, cancelled and returned orders are not counted).{" "}
         <b>{o.attentionCount.toLocaleString("en-IN")}</b> {o.attentionCount === 1 ? "has" : "have"} gone quiet
         {o.unmatched.rows > 0 ? <>, and <b>{o.unmatched.rows} purchase {o.unmatched.rows === 1 ? "row is" : "rows are"}</b> waiting to be matched to a client</> : null}.
       </p>

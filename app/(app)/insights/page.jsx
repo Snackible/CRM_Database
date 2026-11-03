@@ -1,14 +1,15 @@
 import Link from "next/link";
 import AskBox from "@/components/AskBox";
 import { Bar, Card } from "@/components/Cards";
-import { byChannel, byMonth, leadsSummary, newClients, quietRegulars, topClients, totals } from "@/lib/insights";
+import { byMonth, leadsSummary, newClients, quietRegulars, topClients, totals } from "@/lib/insights";
 import { parsePeriod } from "@/lib/periods";
 import { isoDay } from "@/lib/metrics";
 import { agoLabel, dateLabel, money } from "@/lib/format";
-import { channelPref } from "@/lib/viewPrefs";
 import StageControl from "@/components/StageControl";
 
 export const metadata = { title: "Insights · Snackible CRM" };
+
+const CHANNEL = "b2b"; // the only channel the CRM counts anywhere; see lib/stats.js and lib/insights.js
 
 export default async function InsightsPage() {
   const today = new Date();
@@ -17,29 +18,27 @@ export default async function InsightsPage() {
   // Same stretch of last month (1st to today's date) so a half-finished month is compared fairly.
   const lastFrom = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, 1));
   const lastTo = isoDay(new Date(today.getFullYear(), today.getMonth() - 1, Math.min(today.getDate(), new Date(today.getFullYear(), today.getMonth(), 0).getDate())));
-  const channel = await channelPref();
 
-  const [mtd, lastMtd, months, top, quiet, fresh, channels, leads] = await Promise.all([
-    totals(month.from, month.to, channel),
-    totals(lastFrom, lastTo, channel),
-    byMonth(12, today, channel),
-    topClients(year.from, year.to, 8, channel),
-    quietRegulars(8, channel),
-    newClients(month.from, month.to, 5, channel),
-    byChannel(year.from, year.to), // always every channel: this is the card that shows the mix
+  const [mtd, lastMtd, months, top, quiet, fresh, yearTotal, leads] = await Promise.all([
+    totals(month.from, month.to, CHANNEL),
+    totals(lastFrom, lastTo, CHANNEL),
+    byMonth(12, today, CHANNEL),
+    topClients(year.from, year.to, 8, CHANNEL),
+    quietRegulars(8, CHANNEL),
+    newClients(month.from, month.to, 5, CHANNEL),
+    totals(year.from, year.to, CHANNEL),
     leadsSummary("", 5),
   ]);
   const change = lastMtd.revenue > 0 ? Math.round(((mtd.revenue - lastMtd.revenue) / lastMtd.revenue) * 100) : null;
   const maxMonth = Math.max(0, ...months.map((m) => m.revenue));
-  const yearTotal = channels.reduce((s, c) => s + c.revenue, 0);
-  const topShare = yearTotal > 0 ? Math.round((top.reduce((s, c) => s + c.revenue, 0) / yearTotal) * 100) : 0;
+  const topShare = yearTotal.revenue > 0 ? Math.round((top.reduce((s, c) => s + c.revenue, 0) / yearTotal.revenue) * 100) : 0;
 
   return (
     <>
       <div className="page-head">
         <div>
           <h1>Insights</h1>
-          <p>Worked out from the orders and leads in the CRM each time you open this page. Ask a question below, or read the cards.{channel && <> Showing <b>B2B channel only</b> — the channel toggle is in the sidebar.</>}</p>
+          <p>Worked out from the orders and leads in the CRM each time you open this page, B2B channel only. Ask a question below, or read the cards.</p>
         </div>
       </div>
 
@@ -83,20 +82,6 @@ export default async function InsightsPage() {
             </table>
           </Card>
 
-          <Card title="Revenue by channel" sub="This year">
-            <table className="tbl">
-              <tbody>
-                {channels.map((c) => (
-                  <tr key={c.channel}>
-                    <td style={{ width: 120 }}>{c.channel}</td>
-                    <td style={{ width: "45%" }}><Bar value={c.revenue} max={channels[0]?.revenue ?? 0} /></td>
-                    <td className="num">{money(c.revenue)}</td>
-                    <td className="num col-hide">{yearTotal ? Math.round((c.revenue / yearTotal) * 100) : 0}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
         </div>
 
         <div>

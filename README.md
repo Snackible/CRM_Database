@@ -60,6 +60,18 @@ Sheets worth connecting today: `New B2B 2026` (tab `2026`, orders with order val
 - **Push:** an Apps Script in the sheet can `POST /api/ingest` with `Authorization: Bearer $INGEST_SECRET` and `{ "sourceId": 1, "rows": [{ "Column header": "value" }] }`.
 - The accounts sheet itself can never be used as an order feed.
 
+## Editing a lead tries to write back to the sheet
+
+A lead's name, owner and its contacts' name/phone/email are editable from the Leads page and the lead's own client page (the pencil icons). The CRM always saves the edit; it then also tries to overwrite the same cell in the sheet the lead came from, so BD does not have to make the change twice. It remembers which sheet, row and column a lead and each of its contacts came from the moment that row first created them (`clients.lead_source_id`/`lead_row`, `contacts.lead_source_id`/`lead_row`; `lib/leadSync.js`).
+
+This is best effort, not a real two-way sync, and the UI says so when it cannot reach the sheet:
+
+- **The sheet has to be shared with the service account as Editor**, not just Viewer, or the write is refused (the CRM save still goes through either way).
+- **The row is tracked by position.** If someone inserts or deletes a row above it in the sheet after it was read, the next edit from the CRM can land on the wrong row. Re-reading the sheet does not fix this; only a fresh import of that row would.
+- Only a lead's **own creating row** is remembered, so editing the company name or owner always targets that one row even if later syncs added more notes or contacts from other rows.
+- A contact remembers **its own row**, which may differ from the row that created the client (two people from the same company, read on different days).
+- A client or contact made by hand, by CSV, or whose source sheet is no longer connected has nothing to sync to — the edit just stays in the CRM, silently.
+
 ## What counts as a sale
 
 An order sheet's STATUS column also lists orders that are not sales: **Duplicate**, **Cancelled**, **RTO** (returned to origin, in any stage) and **Internal PO**. An order with no amount entered yet (blank or 0 "Order Value") is the same: not a sale until it has one. They stay on file and show struck through on the client's order list, but are left out of revenue, order counts, standings, the Overview, Insights and the chat. Every other status (Delivered, Pending, In-Transit, blank) with a real amount counts. The rule is in `lib/status.js`, and the totals read the `sales` view, which is the orders that count. A sync picks up the amount as soon as ops fills it in, and the order starts counting from then on.
@@ -74,7 +86,7 @@ An admin can hide a client (the "Hide" button on its page, or unhide it from the
 
 ## Which channel the dashboard shows
 
-The Overview, Clients and Insights pages default to **B2B channel only** — the toggle in the sidebar (and the filter icon in the top bar on phones) switches to every channel. It is a per-browser setting (a cookie, not an account field), so it never changes what a teammate sees. "Revenue by channel" on Insights always shows every channel regardless, since that is the one place meant to show the mix.
+The Overview, Clients and Insights pages count **B2B channel orders only** — Zepto, Amazon, Flipkart and every other marketplace or quick-commerce channel are left out of every total, trend and list on these pages (`channel: "b2b"` in `lib/stats.js` and `lib/insights.js`). A client's own page is unaffected and still shows its full order history and real figures, across every channel. Ask the chat a direct question about another channel (e.g. "revenue by channel this year") and it still answers from the real data; it is only the standing dashboard pages that are scoped to B2B.
 
 ## Lead stages
 

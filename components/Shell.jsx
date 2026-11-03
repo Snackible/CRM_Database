@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Check, Filter, MessageSquare, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, RefreshCw, Search, Target, Unlink, Upload, Users } from "lucide-react";
+import { Building2, Check, MessageSquare, DatabaseBackup, FileText, LayoutDashboard, Lightbulb, Palette, Plus, Receipt, RefreshCw, Search, Target, Unlink, Upload, Users } from "lucide-react";
 import { THEMES, THEME_KEY } from "@/lib/themes";
 import { api } from "@/lib/client-api";
 import Logo from "@/components/Logo";
@@ -20,7 +20,7 @@ function active(pathname, href) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Shell({ children, user, role = "b2b", unmatched = 0, sample = 0, extent = {}, version, channelMode = "b2b" }) {
+export default function Shell({ children, user, role = "b2b", unmatched = 0, sample = 0, extent = {}, version }) {
   const pathname = usePathname();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -32,7 +32,6 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
   const [theme, setThemeState] = useState("safelight");
   const [syncing, setSyncing] = useState(false);
   const [syncNote, setSyncNote] = useState("");
-  const [channelBusy, setChannelBusy] = useState(false);
   const inputRef = useRef(null);
 
   // A short bar under a nav item shows how big that section is, against the biggest of the three.
@@ -133,17 +132,6 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
     window.location.href = "/login";
   }
 
-  async function setChannel(mode) {
-    if (mode === channelMode || channelBusy) return;
-    setChannelBusy(true);
-    try {
-      await api("/api/view-mode", { method: "POST", body: { channel: mode } });
-      router.refresh();
-    } finally {
-      setChannelBusy(false);
-    }
-  }
-
   return (
     <div className="app">
       <aside className="rail" aria-label="Main">
@@ -161,10 +149,6 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
             </Link>
           ))}
         </nav>
-        <div className="channel-toggle" role="radiogroup" aria-label="Order channel shown">
-          <button type="button" role="radio" aria-checked={channelMode === "b2b"} disabled={channelBusy} onClick={() => setChannel("b2b")}>B2B only</button>
-          <button type="button" role="radio" aria-checked={channelMode === "all"} disabled={channelBusy} onClick={() => setChannel("all")}>All channels</button>
-        </div>
         <div className="rail-foot">
           <strong>{user}</strong>
           <span>{role === "admin" ? "Admin" : "B2B team"}</span>
@@ -223,15 +207,6 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
           </form>
           <div className="topbar-spacer" />
           {syncNote && <span className="sync-note" role="status">{syncNote}</span>}
-          <button
-            className="btn chan-btn"
-            aria-label={channelMode === "b2b" ? "Showing B2B channel only. Switch to all channels" : "Showing every channel. Switch to B2B only"}
-            title={channelMode === "b2b" ? "B2B channel only — tap for all channels" : "Every channel — tap for B2B only"}
-            disabled={channelBusy}
-            onClick={() => setChannel(channelMode === "b2b" ? "all" : "b2b")}
-          >
-            <Filter size={17} aria-hidden="true" /> <span>{channelMode === "b2b" ? "B2B" : "All"}</span>
-          </button>
           <button className="btn ask-btn" aria-label="Ask about your clients" title="Ask about your clients" aria-expanded={chatOpen} onClick={() => { setChatOpen((v) => !v); setAddOpen(false); setThemeOpen(false); }}>
             <MessageSquare size={17} aria-hidden="true" /> <span className="desk-only">Ask</span>
           </button>

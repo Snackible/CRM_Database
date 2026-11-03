@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import Shell from "@/components/Shell";
@@ -6,13 +5,12 @@ import { currentAccount } from "@/lib/http";
 import { shellCounts } from "@/lib/queries";
 import { syncIfDue } from "@/lib/sheetSync";
 import { versionInfo } from "@/lib/version";
-import { CHANNEL_COOKIE, channelFromCookie } from "@/lib/viewPrefs";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // five minutes, so the background sheet sync below can finish
 
 export default async function AppLayout({ children }) {
-  const [account, counts, cookieJar] = await Promise.all([currentAccount(), shellCounts(), cookies()]);
+  const [account, counts] = await Promise.all([currentAccount(), shellCounts()]);
   // The cookie only proves someone signed in once; the accounts sheet decides whether they still may be here.
   if (!account) redirect("/login");
   // With no scheduler, the Google Sheet feeds are read again whenever someone opens the CRM and the last read
@@ -26,7 +24,6 @@ export default async function AppLayout({ children }) {
       sample={counts.sample}
       extent={{ clients: counts.clients, leads: counts.leads, unmatched: counts.unmatched }}
       version={versionInfo()}
-      channelMode={channelFromCookie(cookieJar.get(CHANNEL_COOKIE)?.value)}
     >
       {children}
     </Shell>

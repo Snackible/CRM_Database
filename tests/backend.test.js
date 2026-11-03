@@ -12,7 +12,9 @@ import { parseNumber, parseDate, identityKey, nameSimilarity, looseNameKey, read
 import { parseCsv } from "../lib/csv.js";
 import { guessMapping } from "../lib/fields.js";
 import { suggestFacts } from "../lib/patterns.js";
-import { addContact, addFact, addNote, addPurchases, createClient, deleteClient, deleteContact, linkUnmatched, saveDocument, undoImport, updateClient } from "../lib/services.js";
+import { addContact, addFact, addNote, addPurchases, createClient, deleteClient, deleteContact, linkUnmatched, saveDocument, undoImport, updateClient, updateContact } from "../lib/services.js";
+import { colLetter } from "../lib/sheets.js";
+import { columnFor } from "../lib/leadSync.js";
 import { finishImport, importBatch, startImport } from "../lib/importer.js";
 import { clientLookup, getClientDetail, hiddenClients, importsList, listClients, listLeads, overview, searchAll, unmatchedGroups } from "../lib/queries.js";
 import { totals } from "../lib/insights.js";
@@ -741,6 +743,58 @@ test("a leads sheet becomes leads with contacts and notes, and reading it again 
   const after = await listClients();
   assert.ok(!after.some((c) => c.name === "Nazara Technologies"), "leads created by that import are removed");
   assert.ok(after.some((c) => c.name === "Greenleaf Mart"), "an existing client is never removed by an undo");
+});
+
+test("a column letter and a mapping target resolve the way the sheet write-back needs them to", () => {
+  assert.equal(colLetter(1), "A");
+  assert.equal(colLetter(26), "Z");
+  assert.equal(colLetter(27), "AA");
+  assert.equal(colLetter(52), "AZ");
+  assert.equal(colLetter(53), "BA");
+  assert.equal(colLetter(702), "ZZ");
+  assert.equal(colLetter(703), "AAA");
+
+  const mapping = { Date: "lead.date", Name: "lead.name", Number: "lead.phone", Remarks: "lead.remarks", Companies: "lead.company", "Follow up": "lead.followup", "Snackible POC": "lead.owner" };
+  assert.equal(columnFor(mapping, "lead.company"), 5); // "Companies" is the 5th header
+  assert.equal(columnFor(mapping, "lead.name"), 2);
+  assert.equal(columnFor(mapping, "lead.owner"), 7);
+  assert.equal(columnFor(mapping, "lead.email"), null, "not mapped in this sheet");
+});
+
+test("a lead created from a sheet remembers which row it came from, so an edit can try to sync back", async () => {
+  const mapping = { Date: "lead.date", Name: "lead.name", Number: "lead.phone", Remarks: "lead.remarks", Companies: "lead.company", "Snackible POC": "lead.owner" };
+  const raw = [
+    { Date: "01/08/2026", Name: "Ritu", Number: "90000 11111", Remarks: "First call went well", Companies: "RowTrack Foods Pvt Ltd", "Snackible POC": "Aditi" },
+    { Date: "02/08/2026", Name: "Kabir", Number: "90000 22222", Remarks: "Second contact, same company", Companies: "RowTrack Foods Pvt Ltd", "Snackible POC": "Aditi" },
+  ];
+  // Tags each row with the sheet row it would really have come from (row 1 is the header), the way readSheet does.
+  const rows = raw.map((r, i) => {
+    const row = { ...r };
+    Object.defineProperty(row, "__row", { value: i + 2, enumerable: false });
+    return row;
+  });
+  const source = await createSource({ name: "RowTrack sheet", kind: "leads", sheetUrl: "https://docs.google.com/spreadsheets/d/1RowTrack0123456789AbCdEfGhIjKlMnOpQr/edit", tab: "Sheet1", mapping, dayFirst: true }, "t");
+  await syncSource(source.id, "Sheet bot", { read: async () => ({ headers: Object.keys(raw[0]), rows }) });
+
+  const client = (await listClients()).find((c) => c.name === "RowTrack Foods Pvt Ltd");
+  const row = await query(`SELECT lead_source_id, lead_row FROM clients WHERE id = $1`, [client.id]);
+  assert.equal(row.rows[0].lead_source_id, source.id);
+  assert.equal(row.rows[0].lead_row, 2, "the client was created by the first data row, sheet row 2");
+
+  const contacts = (await query(`SELECT id, name, lead_source_id, lead_row FROM contacts WHERE client_id = $1`, [client.id])).rows;
+  assert.equal(contacts.find((c) => c.name === "Ritu").lead_row, 2, "Ritu's own row");
+  assert.equal(contacts.find((c) => c.name === "Kabir").lead_row, 3, "Kabir's own row, not the client's creating row");
+
+  // No Google credentials in this test environment, so the sheet itself is never actually reached: syncing comes
+  // back empty-handed rather than failing the save, and the database write still goes through either way.
+  const renamed = await updateClient(client.id, { name: "RowTrack Foods Private Limited" });
+  assert.equal(renamed.sheetSynced.length, 0);
+  assert.equal(renamed.sheetError, undefined);
+  assert.equal((await listClients()).find((c) => c.id === client.id).name, "RowTrack Foods Private Limited");
+
+  const contactEdit = await updateContact(contacts.find((c) => c.name === "Ritu").id, { name: "Ritu Sharma", phone: "90000 11111" });
+  assert.equal(contactEdit.sheetSynced.length, 0);
+  assert.equal((await getClientDetail(client.id)).contacts.find((c) => c.phone === "90000 11111").name, "Ritu Sharma");
 });
 
 test("an import can create a client for each new buyer, once, and undo removes them", async () => {
