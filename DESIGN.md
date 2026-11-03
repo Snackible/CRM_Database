@@ -182,7 +182,10 @@ Zero radius on every control, sheet, chip and cell. Borders carry the form: 2px 
 - Focus: 3px outline, white on the red room, ink on sheets, 2px offset.
 
 ### Chips (status marks)
-An 18px square mark plus caps label. Active = solid black; watch = single 135deg hatch; lapsed = red border with red cross-hatch; new = hollow. A plain variant is a bordered wash tag without a mark.
+An 18px square mark plus caps label. Active = solid black; watch = single 135deg hatch; lapsed = red border with red cross-hatch; new = hollow; lead = a centred dot. A plain variant is a bordered wash tag without a mark.
+
+### Stage chip (lead stage)
+The same mark-plus-label device, reused for a lead's progress instead of a new colour system: no stage is a dotted muted mark, then New (hollow) through Contacted/Qualified/Negotiating climb the Berth load scale (9px, 6px, 5px hatch), Won is solid, and Lost breaks the climb for the lapsed mark (red border, red cross-hatch). Read-only, it is a bare chip; editable, the mark sits inside a 2px-bordered field housing a real `<select>` (`components/StageControl.jsx`), so it keeps native keyboard and screen-reader behaviour while looking like the rest of the state vocabulary, not a tinted SaaS badge.
 
 ### Cards / Containers (panels)
 White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.

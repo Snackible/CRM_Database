@@ -262,13 +262,30 @@ svg { flex: none; }
 .chip.plain { padding: 1px 8px; border: 1px solid var(--rule); background: var(--pane-2); color: var(--ink); font-size: 15px; }
 .chip.plain::before { display: none; }
 
-.stage-pill {
-  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 2px solid; font: 800 14px var(--font-cond);
-  letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
-}
-.stage-pill.sm { height: 24px; padding: 0 8px; font-size: 13px; }
-select.stage-select { border-radius: 0; cursor: pointer; }
-select.stage-select:disabled { opacity: 0.6; cursor: default; }
+/* Lead stage: the same device as the standing chip (a hatched mark), not a tinted badge — how far along
+   reads as hatch density (New hollow, through three densities, Won solid), exactly like a Berth cell's load.
+   Lost breaks the progression and takes the lapsed mark: red border, red cross-hatch. */
+.stage-chip { display: inline-flex; align-items: center; gap: 8px; color: inherit; font: 800 17px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.stage-chip .mk { width: 18px; height: 18px; border: 2px solid currentColor; flex: none; background: transparent; }
+.stage-chip[data-stage=""] { color: var(--muted); }
+.stage-chip[data-stage=""] .mk { border-style: dotted; border-color: color-mix(in srgb, currentColor 55%, transparent); }
+.stage-chip[data-stage="Contacted"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 9px); }
+.stage-chip[data-stage="Qualified"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 6px); }
+.stage-chip[data-stage="Negotiating"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 5px); }
+.stage-chip[data-stage="Won"] .mk { background: var(--ok); border-color: var(--ok); }
+.stage-chip[data-stage="Lost"] { color: var(--bad-ink); }
+.stage-chip[data-stage="Lost"] .mk { border-color: var(--bad); background: repeating-linear-gradient(45deg, var(--bad) 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, var(--bad) 0 2px, transparent 2px 5px); }
+.stage-chip.sm { font-size: 14px; gap: 6px; }
+.stage-chip.sm .mk { width: 14px; height: 14px; }
+
+/* The editable form: the mark sits inside a field border, like an input with a leading icon. */
+.stage-field { height: 32px; padding: 0 10px 0 8px; border: 2px solid var(--rule); background: var(--pane); }
+.stage-field.sm { height: 28px; padding: 0 8px 0 6px; }
+.stage-field:focus-within { border-color: var(--ink); outline: 3px solid var(--ink); outline-offset: 0; }
+.stage-field.busy { opacity: 0.6; }
+.stage-select { border: 0; background: transparent; padding: 0; margin: 0; height: 100%; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; }
+.stage-select:disabled { cursor: default; }
+.stage-select option { color: var(--ink); background: var(--pane); text-transform: none; letter-spacing: normal; font-family: var(--font); }
 
 .berth { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; padding: 14px 14px 4px; }
 .berth .cell { height: 44px; border: 2px solid var(--rule); display: grid; place-items: end start; position: relative; overflow: hidden; font: 700 12px/1 var(--font-mono); }
@@ -509,6 +526,8 @@ select.stage-select:disabled { opacity: 0.6; cursor: default; }
   .btn { height: 44px; }
   .btn.sm { height: 40px; }
   .input, .select { min-height: 44px; }
+  .stage-field { height: 40px; }
+  .stage-field.sm { height: 36px; }
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--rail-bg); color: var(--rail-ink); padding: 0 0 env(safe-area-inset-bottom); box-shadow: 0 -10px 24px -14px rgba(0, 0, 0, 0.6); }
   .tabbar a, .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 58px; padding: 6px 2px; border: 0; background: transparent; color: inherit; text-decoration: none; position: relative; font-size: 15px; }
   .tabbar a[aria-current="page"] { background: var(--rail-ink); color: var(--rail-bg); }
