@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { authenticate, clearAccountsCache, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled } from "../lib/accounts.js";
 import { createSessionValue, readSessionValue } from "../lib/session.js";
 import { cleanEmail, cleanPhone } from "../lib/contacts.js";
+import { isEncrypted, verifyPin } from "../lib/pinVault.js";
 
 const HEADERS = ["username", "password", "role", "account_id", "display_name", "Email", "Contact"];
 const row = (username, password, role, display_name = "", email = "", contact = "") => ({ username, password, role, account_id: "", display_name, Email: email, Contact: contact });
@@ -120,7 +121,10 @@ test("registration: validates, rejects duplicates, and writes the row in the she
   assert.equal(done.username, "priya.s");
   assert.equal(appended.length, 1);
   assert.equal(appended[0].tab, "Users");
-  assert.deepEqual(appended[0].values, ["priya.s", "secret1", "b2b", "", "Priya S", "priya@example.com", "919812345678"]);
+  const [u, stored, ...rest] = appended[0].values;
+  assert.equal(isEncrypted(stored), true, "the password is written as a hash, never as typed");
+  assert.equal(await verifyPin("secret1", stored), true);
+  assert.deepEqual([u, ...rest], ["priya.s", "b2b", "", "Priya S", "priya@example.com", "919812345678"]);
   // and the new person can sign in straight away (the cache was cleared)
   assert.equal((await authenticate("priya.s", "secret1", "r3", deps)).role, "b2b");
   await assert.rejects(() => go({}), (e) => e.status === 409, "the same username cannot be registered twice");
@@ -131,7 +135,10 @@ test("registration respects a sheet with its columns in a different order, and c
   const headers = ["Email", "display_name", "role", "Username", "Password", "Contact", "account_id", "notes"];
   const { deps, appended } = fakeSheet([{ Email: "", display_name: "Boss", role: "master-admin", Username: "boss", Password: "m-pass-1", Contact: "", account_id: "", notes: "" }], headers);
   await registerAccount({ master: "m-pass-1", username: "ops one", password: "abcdef", role: "ops", display_name: "Ops One" }, { ip: "r4", ...deps });
-  assert.deepEqual(appended[0].values, ["", "Ops One", "ops", "ops one", "abcdef", "", "", ""]);
+  const values = [...appended[0].values];
+  assert.equal(await verifyPin("abcdef", values[4]), true, "the Password column holds a hash of what was typed");
+  values[4] = "<hash>";
+  assert.deepEqual(values, ["", "Ops One", "ops", "ops one", "<hash>", "", "", ""]);
 });
 
 test("a sheet missing a required column fails clearly", async () => {
@@ -182,4 +189,57 @@ test("a signed-in person is checked against the sheet again: ops, blanks and rem
   assert.deepEqual(await liveAccount(session("meera"), broken), session("meera"));
   // no accounts sheet configured (local trial): the session stands
   assert.deepEqual(await liveAccount(session("anyone"), { configured: false }), session("anyone"));
+});
+
+/** A stand-in sheet whose rows carry their sheet row number (like the real reader) and that records cell writes. */
+function writableSheet(rows, headers = HEADERS) {
+  const writes = [];
+  const withRow = () => rows.map((r, i) => Object.defineProperty({ ...r }, "__row", { value: i + 2, enumerable: false }));
+  return {
+    writes,
+    deps: {
+      read: async () => ({ headers, rows: withRow() }),
+      tabTitle: async () => "Users",
+      update: async ({ cells }) => {
+        writes.push(...cells);
+        for (const c of cells) rows[c.row - 2][headers[c.col - 1]] = c.value;
+      },
+    },
+  };
+}
+
+test("passwords: plain text still signs in, and is hashed in the sheet the next time the accounts are read", async () => {
+  clearAccountsCache();
+  const rows = people();
+  const { deps, writes } = writableSheet(rows);
+  assert.equal((await authenticate("meera", "bd-pass-1", "p1", deps)).role, "b2b");
+
+  const hashed = rows.filter((r) => r.password && isEncrypted(r.password));
+  assert.equal(hashed.length, 5, "every row that has a password was upgraded");
+  assert.equal(rows.find((r) => r.username === "nopass").password, "", "a blank password stays blank");
+  assert.ok(writes.every((w) => w.col === 2), "only the password column is written");
+  assert.equal(JSON.stringify(rows).includes("bd-pass-1"), false, "no plain text left in the sheet");
+
+  // and everyone can still sign in with what they always typed, including the master-admin check
+  clearAccountsCache();
+  assert.equal((await authenticate("meera", "bd-pass-1", "p2", deps)).role, "b2b");
+  assert.equal((await authenticate("aditi", "admin-pass", "p2", deps)).role, "admin");
+  await assert.rejects(() => authenticate("meera", "wrong", "p2", deps), (e) => e.status === 401);
+  assert.equal(await masterMatches("master-pass", deps), true);
+  assert.equal(await masterMatches("nope", deps), false);
+
+  // a second read writes nothing
+  const before = writes.length;
+  clearAccountsCache();
+  await authenticate("meera", "bd-pass-1", "p3", deps);
+  assert.equal(writes.length, before);
+});
+
+test("passwords: a sheet that cannot be written to still signs people in", async () => {
+  clearAccountsCache();
+  const rows = people();
+  const { deps } = writableSheet(rows);
+  deps.update = async () => { throw new Error("read-only"); };
+  assert.equal((await authenticate("meera", "bd-pass-1", "p4", deps)).role, "b2b");
+  assert.equal(rows.find((r) => r.username === "meera").password, "bd-pass-1", "left as it was");
 });
