@@ -146,9 +146,9 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                   <tr key={l.id} className={l.urgent ? "urgent" : undefined}>
                     <td>
                       {l.urgent && (
-                        <span className="urgent-mark active" aria-label="Urgent" title="Urgent">
+                        <button type="button" className="urgent-mark active" aria-label="Urgent" title="Filter by Urgent" onClick={() => go({ urgent: filters.urgent === "1" ? "" : "1" })}>
                           <Asterisk size={14} strokeWidth={3} aria-hidden="true" />
-                        </span>
+                        </button>
                       )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>

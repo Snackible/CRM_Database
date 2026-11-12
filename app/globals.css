@@ -278,7 +278,7 @@ svg { flex: none; }
 .urgent-mark svg { width: 100%; height: 100%; padding: 2px; }
 .urgent-toggle { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 4px; border: 0; background: transparent; color: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
 .urgent-toggle:hover .urgent-mark:not(.active) { border-color: var(--bad); color: var(--bad-ink); }
-.tbl .urgent-mark { margin-right: 8px; }
+.tbl .urgent-mark { margin-right: 8px; padding: 0; cursor: pointer; }
 .tbl tr.urgent td:first-child { border-left: 3px solid var(--bad); }
 
 /* A lead's own Quality note, as a glyph instead of a hatch — a tick for Suitable, a cross for Not suitable,
