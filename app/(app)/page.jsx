@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { overview } from "@/lib/queries";
-import { agoLabel, dateLabel, money } from "@/lib/format";
+import { agoLabel, dateLabel, money, notePreview } from "@/lib/format";
 import { BerthStrip, StatusChip } from "@/components/Berth";
 import { Bar, Card } from "@/components/Cards";
 import MonthPicker from "@/components/MonthPicker";
@@ -114,13 +114,15 @@ export default async function Overview({ searchParams }) {
 
   return (
     <>
-      <div className="page-head"><div><h1>Overview</h1></div></div>
-
-      <p className="lede">
-        <b>B2B channel only</b> — <b>{o.total.toLocaleString("en-IN")} {o.total === 1 ? "client has" : "clients have"}</b> ordered <b>{money(o.revenue)}</b> in the last twelve months (duplicate, cancelled and returned orders are not counted).{" "}
-        <b>{o.attentionCount.toLocaleString("en-IN")}</b> {o.attentionCount === 1 ? "has" : "have"} gone quiet
-        {o.unmatched.rows > 0 ? <>, and <b>{o.unmatched.rows} purchase {o.unmatched.rows === 1 ? "row is" : "rows are"}</b> waiting to be matched to a client</> : null}.
-      </p>
+      <div className="page-head">
+        <div>
+          <h1>Overview</h1>
+          <p>
+            <b>{o.total.toLocaleString("en-IN")} clients</b> ordered <b>{money(o.revenue)}</b> in the last twelve months, B2B only.{" "}
+            <b>{o.attentionCount.toLocaleString("en-IN")}</b> gone quiet{o.unmatched.rows > 0 ? <>, <Link href="/unmatched"><b>{o.unmatched.rows}</b> rows unmatched</Link></> : null}.
+          </p>
+        </div>
+      </div>
 
       <div className="ov-grid">
         <div>
@@ -128,7 +130,7 @@ export default async function Overview({ searchParams }) {
             title={s.period.isCurrent ? "This month so far" : monthLabel}
             sub={
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                {s.period.isCurrent ? `1 to ${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, against the same days last month` : "Against the same stretch of the month before, both in full"}
+                {s.period.isCurrent ? `1–${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, vs. same days last month` : "Vs. the month before, in full"}
                 <MonthPicker value={month} options={monthOptions} />
               </span>
             }
@@ -285,7 +287,7 @@ export default async function Overview({ searchParams }) {
                 {o.recent.map((t, i) => (
                   <li key={i}>
                     <Link href={`/clients/${t.clientId}`}><b>{t.clientName}</b></Link>
-                    <div>{t.kind === "note" ? t.body : t.title}</div>
+                    <div>{t.kind === "note" ? notePreview(t.body, 140) : t.title}</div>
                     <div className="when">{t.kind === "note" ? `Note by ${t.title}` : "Document"} · {dateLabel(t.date)}</div>
                   </li>
                 ))}

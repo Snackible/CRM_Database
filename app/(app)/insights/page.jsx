@@ -38,7 +38,7 @@ export default async function InsightsPage() {
       <div className="page-head">
         <div>
           <h1>Insights</h1>
-          <p>Worked out from the orders and leads in the CRM each time you open this page, B2B channel only. Ask a question below, or read the cards.</p>
+          <p>Worked out live from your orders and leads, B2B channel only.</p>
         </div>
       </div>
 

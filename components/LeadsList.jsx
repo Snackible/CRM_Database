@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Pencil, Phone, Upload } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
-import { dateLabel } from "@/lib/format";
+import { dateLabel, notePreview } from "@/lib/format";
 import { api } from "@/lib/client-api";
 import StageControl from "@/components/StageControl";
 
@@ -144,7 +144,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                     <td>
                       <StageControl stage={l.lead_stage} onChange={(s) => setStage(l, s)} disabled={saving === l.id} size="sm" />
                     </td>
-                    <td className="col-hide" style={{ maxWidth: 420 }}>{l.last_note ? (l.last_note.length > 140 ? `${l.last_note.slice(0, 140)}…` : l.last_note) : <span className="muted">No notes</span>}</td>
+                    <td className="col-hide" style={{ maxWidth: 420 }}>{l.last_note ? notePreview(l.last_note) : <span className="muted">No notes</span>}</td>
                     <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "—"}</td>
                   </tr>
                 ))}

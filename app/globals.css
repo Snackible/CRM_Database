@@ -133,7 +133,6 @@ svg { flex: none; }
 }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 18px 18px; margin-bottom: 12px; border-bottom: 1px solid color-mix(in srgb, var(--rail-ink) 40%, transparent); text-decoration: none; color: inherit; }
 .brand-name { display: block; font-size: 26px; font-weight: 900; letter-spacing: 0.08em; line-height: 1; }
-.brand-name small { display: block; margin-top: 4px; font: 500 12px/1.2 var(--font-mono); letter-spacing: 0.1em; opacity: 0.8; }
 .brand-mark { display: block; flex: none; }
 .topbar-mark { display: none; flex: none; }
 .topbar-mark svg { display: block; }
@@ -344,8 +343,6 @@ svg { flex: none; }
 .empty h3 { color: var(--ink); font-weight: 800; margin-bottom: 6px; font-size: 22px; }
 
 /* ---------- overview ---------- */
-.lede { max-width: 80ch; margin-bottom: 18px; font-weight: 500; color: var(--bed-ink); }
-.lede b { font-weight: 700; }
 .two-col { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
 .two-col > div .panel:first-child { margin-top: 0; }
 .attn { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 11px 14px; border-bottom: 1px dotted var(--rule); }

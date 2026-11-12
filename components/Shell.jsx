@@ -137,7 +137,7 @@ export default function Shell({ children, user, role = "b2b", unmatched = 0, sam
       <aside className="rail" aria-label="Main">
         <Link href="/" className="brand">
           <Logo />
-          <span className="brand-name">Snackible<small>Client record</small></span>
+          <span className="brand-name">Snackible</span>
         </Link>
         <nav className="nav">
           {NAV.map((n) => (
