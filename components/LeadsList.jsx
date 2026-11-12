@@ -79,10 +79,10 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
 
       <section className="panel" aria-label="Leads">
         <form className="toolbar" onSubmit={(e) => { e.preventDefault(); go({ q: new FormData(e.currentTarget).get("q")?.toString().trim() ?? "" }); }}>
-          <input className="input" type="search" name="q" defaultValue={filters.q} placeholder="Company, person, phone or owner" aria-label="Search leads" />
+          <input className="input" type="search" name="q" defaultValue={filters.q} placeholder="Company, person, phone or POC" aria-label="Search leads" />
           {owners.length > 0 && (
-            <select className="select" aria-label="Owner" value={filters.owner} onChange={(e) => go({ owner: e.target.value })}>
-              <option value="">Any owner</option>
+            <select className="select" aria-label="POC" value={filters.owner} onChange={(e) => go({ owner: e.target.value })}>
+              <option value="">Any POC</option>
               {owners.map((o) => <option key={o}>{o}</option>)}
             </select>
           )}
@@ -123,7 +123,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
           <div className="table-wrap">
             <table className="tbl">
               <thead>
-                <tr><th>Lead</th><th>Contact</th><th className="col-hide">Owner</th><th>Stage</th><th className="col-hide">Quality</th><th className="col-hide">Latest note</th><th>Last touched</th></tr>
+                <tr><th>Lead</th><th>Contact</th><th className="col-hide">POC</th><th>Stage</th><th className="col-hide">Latest note</th><th>Last touched</th></tr>
               </thead>
               <tbody>
                 {rows.map((l) => (
@@ -136,6 +136,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                       )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
+                      {l.quality && <span className={`chip ${QUALITY_CLASS[l.quality] ?? "plain"}`} style={{ marginTop: 4 }}>{l.quality}</span>}
                     </td>
                     <td>
                       {editingContact === l.id ? (
@@ -161,7 +162,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                         className="input sm"
                         style={{ width: "100%", minWidth: 100 }}
                         defaultValue={l.owner ?? ""}
-                        aria-label={`Owner for ${l.name}`}
+                        aria-label={`POC for ${l.name}`}
                         disabled={saving === l.id}
                         onBlur={(e) => setOwner(l, e.target.value.trim())}
                         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -170,7 +171,6 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                     <td>
                       <StageControl stage={l.lead_stage} onChange={(s) => setStage(l, s)} disabled={saving === l.id} size="sm" />
                     </td>
-                    <td className="col-hide">{l.quality ? <span className={`chip ${QUALITY_CLASS[l.quality] ?? "plain"}`}>{l.quality}</span> : <span className="muted">—</span>}</td>
                     <td className="col-hide" style={{ maxWidth: 420 }}>{l.last_note ? notePreview(l.last_note) : <span className="muted">No notes</span>}</td>
                     <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "—"}</td>
                   </tr>
