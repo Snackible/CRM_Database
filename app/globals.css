@@ -365,9 +365,9 @@ svg { flex: none; }
 .empty h3 { color: var(--ink); font-weight: 800; margin-bottom: 6px; font-size: 22px; }
 
 /* ---------- overview ---------- */
-.two-col { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
 .two-col > div .panel:first-child { margin-top: 0; }
-.attn { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 11px 14px; border-bottom: 1px dotted var(--rule); }
+.attn { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 20px; padding: 16px 18px; border-bottom: 1px dotted var(--rule); }
 .attn:last-child { border-bottom: 0; }
 .attn:hover { background: var(--pane-2); }
 .attn .name { font-family: var(--font-cond); font-size: 21px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; text-decoration: none; color: var(--ink); line-height: 1.1; }
@@ -554,8 +554,13 @@ svg { flex: none; }
   .berth { gap: 3px; padding: 12px 10px 4px; }
   .berth .cell { height: 34px; }
   .berth-months { gap: 3px; padding: 0 10px 10px; }
-  .attn { grid-template-columns: minmax(0, 1fr) auto; }
+  .attn { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 14px; gap: 12px; }
   .attn .berth-slot { display: none; }
+  .ov-grid, .two-col { gap: 18px; }
+  .ov-grid { margin-bottom: 20px; }
+  .ov-grid > div > .panel + .panel, .two-col > div > .panel + .panel { margin-top: 18px; }
+  .ov-grid .fig-list > div { padding: 10px 14px; }
+  .ov-grid .panel-head, .two-col .panel-head { padding: 10px 14px 8px; }
   .map-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .map-row.head { display: none; }
   .unmatched-item { grid-template-columns: minmax(0, 1fr); }
@@ -620,8 +625,11 @@ svg { flex: none; }
 }
 
 /* ---------- overview summaries ---------- */
-.ov-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; margin-bottom: 26px; }
-.ov-grid > div > .panel + .panel { margin-top: 22px; }
+.ov-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; align-items: start; margin-bottom: 30px; }
+.ov-grid > div > .panel + .panel { margin-top: 28px; }
+.two-col > div > .panel + .panel { margin-top: 28px; }
+.ov-grid .fig-list > div { padding: 14px 18px; }
+.ov-grid .panel-head, .two-col .panel-head { padding: 14px 18px 12px; }
 .fig-list .chg { margin-left: 10px; font: 500 13px var(--font-mono); color: var(--muted); }
 .fig-list .chg.down { color: var(--bad-ink); }
 .tbl .sub { display: block; }
