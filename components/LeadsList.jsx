@@ -86,8 +86,12 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
           <select className="select" aria-label="Stage" value={filters.stage} onChange={(e) => go({ stage: e.target.value })}>
             {STAGE_FILTERS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
           </select>
+          <label className="row" style={{ gap: 6, fontWeight: 800 }}>
+            <input type="checkbox" checked={filters.urgent === "1"} onChange={(e) => go({ urgent: e.target.checked ? "1" : "" })} />
+            Urgent only
+          </label>
           <button className="btn sm" type="submit">Filter</button>
-          {(filters.q || filters.owner || filters.stage) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
+          {(filters.q || filters.owner || filters.stage || filters.urgent) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
         </form>
 
         {error && <div className="notice" role="alert" style={{ margin: "0 12px 12px" }}>{error}</div>}
@@ -95,8 +99,8 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
 
         {rows.length === 0 ? (
           <div className="empty">
-            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage ? "No leads yet" : "No lead matches"}</h3>
-            {total === 0 && !filters.q && !filters.owner && !filters.stage ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
+            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent ? "No leads yet" : "No lead matches"}</h3>
+            {total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
           </div>
         ) : (
           <div className="table-wrap">
@@ -106,8 +110,9 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
               </thead>
               <tbody>
                 {rows.map((l) => (
-                  <tr key={l.id}>
+                  <tr key={l.id} className={l.urgent ? "urgent" : undefined}>
                     <td>
+                      {l.urgent && <span className="urgent-mark">Urgent</span>}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
                     </td>
