@@ -282,8 +282,10 @@ svg { flex: none; }
 .tbl tr.urgent td:first-child { border-left: 3px solid var(--bad); }
 
 /* A lead's own Quality note, as a glyph instead of a hatch — a tick for Suitable, a cross for Not suitable,
-   and a shape of its own for the rest — sitting under the name rather than owning a column. */
-.quality-tag { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font: 800 13px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+   and a shape of its own for the rest — sitting under the name rather than owning a column. Also doubles as
+   a one-click filter: clicking it is the same as picking that value in the toolbar's Quality select. */
+.quality-tag { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 0; padding: 0; background: transparent; cursor: pointer; font: 800 13px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+.quality-tag:hover, .quality-tag.active { text-decoration: underline; }
 .quality-mark { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none; border: 2px solid var(--rule); color: var(--muted); }
 .quality-mark svg { width: 100%; height: 100%; padding: 2px; }
 .quality-mark.good { background: var(--ok); border-color: var(--ok); color: var(--ok-on); }

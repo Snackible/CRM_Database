@@ -17,17 +17,17 @@ const STAGE_FILTERS = [["", "Any stage"], ...LEAD_STAGES.map((s) => [s, s]), ["(
 const QUALITY_ICON = { Suitable: Check, "Not suitable": X, CNA: PhoneMissed, "Call Later": Clock, Cold: Snowflake };
 const QUALITY_TONE = { Suitable: "good", "Not suitable": "bad" };
 
-function QualityTag({ quality }) {
+function QualityTag({ quality, active, onClick }) {
   const Icon = QUALITY_ICON[quality];
   return (
-    <span className="quality-tag">
+    <button type="button" className={`quality-tag${active ? " active" : ""}`} aria-pressed={active} title={`Filter by ${quality}`} onClick={onClick}>
       {Icon && (
         <span className={`quality-mark${QUALITY_TONE[quality] ? ` ${QUALITY_TONE[quality]}` : ""}`} aria-hidden="true">
           <Icon size={13} strokeWidth={3} />
         </span>
       )}
       {quality}
-    </span>
+    </button>
   );
 }
 
@@ -152,7 +152,13 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                       )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
-                      {l.quality && <QualityTag quality={l.quality} />}
+                      {l.quality && (
+                        <QualityTag
+                          quality={l.quality}
+                          active={filters.quality === l.quality}
+                          onClick={() => go({ quality: filters.quality === l.quality ? "" : l.quality })}
+                        />
+                      )}
                     </td>
                     <td>
                       {editingContact === l.id ? (

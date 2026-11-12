@@ -117,10 +117,7 @@ export default async function Overview({ searchParams }) {
       <div className="page-head">
         <div>
           <h1>Overview</h1>
-          <p>
-            <b>{o.total.toLocaleString("en-IN")} clients</b> ordered <b>{money(o.revenue)}</b> in the last twelve months, B2B only.{" "}
-            <b>{o.attentionCount.toLocaleString("en-IN")}</b> gone quiet{o.unmatched.rows > 0 ? <>, <Link href="/unmatched"><b>{o.unmatched.rows}</b> rows unmatched</Link></> : null}.
-          </p>
+          <p><b>{o.total.toLocaleString("en-IN")} clients</b>, <b>{money(o.revenue)}</b> in the last twelve months (B2B only).</p>
         </div>
       </div>
 
@@ -260,9 +257,7 @@ export default async function Overview({ searchParams }) {
               {limit !== 12 && <Link className="btn quiet sm" href={href({ n: 12 })} scroll={false}>Show 12</Link>}
             </div>
           )}
-          {o.attention.length === 0 && (
-            <div className="empty"><h3>Everyone has ordered recently</h3>Clients with no order for {days} days will show here.</div>
-          )}
+          {o.attention.length === 0 && <div className="empty"><h3>Everyone has ordered recently</h3></div>}
         </section>
 
         <div>
@@ -271,8 +266,7 @@ export default async function Overview({ searchParams }) {
               <div className="panel-head"><h2 id="wait-h">Waiting for you</h2></div>
               <ul className="feed">
                 <li>
-                  <Link href="/unmatched"><b>{o.unmatched.groups} {o.unmatched.groups === 1 ? "buyer" : "buyers"}</b></Link> in your imports matched no client ({o.unmatched.rows} rows, {money(o.unmatched.total)}).
-                  <div className="when">Link them or create the clients.</div>
+                  <Link href="/unmatched"><b>{o.unmatched.groups} {o.unmatched.groups === 1 ? "buyer" : "buyers"}</b></Link> matched no client ({o.unmatched.rows} rows, {money(o.unmatched.total)}).
                 </li>
               </ul>
             </section>
