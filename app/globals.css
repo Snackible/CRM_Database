@@ -281,6 +281,14 @@ svg { flex: none; }
 .tbl .urgent-mark { margin-right: 8px; }
 .tbl tr.urgent td:first-child { border-left: 3px solid var(--bad); }
 
+/* A lead's own Quality note, as a glyph instead of a hatch — a tick for Suitable, a cross for Not suitable,
+   and a shape of its own for the rest — sitting under the name rather than owning a column. */
+.quality-tag { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font: 800 13px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+.quality-mark { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none; border: 2px solid var(--rule); color: var(--muted); }
+.quality-mark svg { width: 100%; height: 100%; padding: 2px; }
+.quality-mark.good { background: var(--ok); border-color: var(--ok); color: var(--ok-on); }
+.quality-mark.bad { border-color: var(--bad); color: var(--bad-ink); }
+
 /* The editable form: the mark sits inside a field border, like an input with a leading icon. */
 .stage-field { height: 32px; padding: 0 10px 0 8px; border: 2px solid var(--rule); background: var(--pane); }
 .stage-field.sm { height: 28px; padding: 0 8px 0 6px; }

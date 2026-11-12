@@ -190,8 +190,8 @@ The same mark-plus-label device, reused for a lead's progress instead of a new c
 ### Urgent mark (lead flag)
 A 22px bordered square: empty and muted by default, filled red with a centred asterisk glyph (Lucide `Asterisk`) when a lead's "Level of Urgency" note says so. The same square doubles as the Leads toolbar's filter toggle — labelled "Urgent" and asterisk-filled only while the filter is on — so the on/off reading is identical in the row and in the control that sets it.
 
-### Quality chip (lead triage)
-The same chip device as a client's standing, reused for a lead's own "Quality" note (Suitable, Not suitable, CNA, Call Later, Cold): Suitable is the solid active mark, Not suitable the lapsed red cross-hatch, CNA/Call Later the single-hatch watch mark, and anything else — Cold included — the plain bordered tag with its own text. It sits in the Lead cell itself, under the name and source line, rather than owning a column — the same instinct as the urgent mark. Filtered from the same toolbar as stage and urgent, including a "Not triaged" option for leads with no Quality note yet.
+### Quality tag (lead triage)
+A lead's own "Quality" note (Suitable, Not suitable, CNA, Call Later, Cold), read as a glyph in an 18px bordered square next to its caps label instead of hatch density — a plain tick for Suitable (solid black fill, white tick), a cross for Not suitable (red border, red cross), and a shape of its own for the others (a missed-call mark for CNA, a clock for Call Later, a snowflake for Cold), so each value is told apart by its icon rather than by degree. It sits in the Lead cell itself, under the name and source line, rather than owning a column — the same instinct as the urgent mark. Filtered from the same toolbar as stage and urgent, including a "Not triaged" option for leads with no Quality note yet.
 
 ### Cards / Containers (panels)
 White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.

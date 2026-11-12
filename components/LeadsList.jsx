@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Asterisk, ChevronLeft, ChevronRight, Pencil, Phone, Upload } from "lucide-react";
+import { Asterisk, Check, ChevronLeft, ChevronRight, Clock, Pencil, Phone, PhoneMissed, Snowflake, Upload, X } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel, notePreview } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -12,8 +12,24 @@ import StageControl from "@/components/StageControl";
 // "(none)" is a real filter value (leads with no stage set yet), distinct from "" (any stage).
 const STAGE_FILTERS = [["", "Any stage"], ...LEAD_STAGES.map((s) => [s, s]), ["(none)", "No stage set"]];
 
-// Same chip device as a client's standing or an import's result, reused for how a lead was triaged.
-const QUALITY_CLASS = { Suitable: "active", "Not suitable": "lapsed", CNA: "watch", "Call Later": "watch" };
+// A glyph per triage value instead of hatch density, so Suitable/Not suitable read at a glance as a plain
+// tick/cross rather than two shades of the same mark; the others get their own shape too, same black/red ink.
+const QUALITY_ICON = { Suitable: Check, "Not suitable": X, CNA: PhoneMissed, "Call Later": Clock, Cold: Snowflake };
+const QUALITY_TONE = { Suitable: "good", "Not suitable": "bad" };
+
+function QualityTag({ quality }) {
+  const Icon = QUALITY_ICON[quality];
+  return (
+    <span className="quality-tag">
+      {Icon && (
+        <span className={`quality-mark${QUALITY_TONE[quality] ? ` ${QUALITY_TONE[quality]}` : ""}`} aria-hidden="true">
+          <Icon size={13} strokeWidth={3} />
+        </span>
+      )}
+      {quality}
+    </span>
+  );
+}
 
 export default function LeadsList({ rows, total, pages, page, owners, qualities, filters }) {
   const router = useRouter();
@@ -136,7 +152,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                       )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
-                      {l.quality && <span className={`chip ${QUALITY_CLASS[l.quality] ?? "plain"}`} style={{ marginTop: 4 }}>{l.quality}</span>}
+                      {l.quality && <QualityTag quality={l.quality} />}
                     </td>
                     <td>
                       {editingContact === l.id ? (

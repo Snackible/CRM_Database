@@ -1,6 +1,6 @@
 {
   "name": "snackible-crm",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
   "description": "Client record and purchase history for Snackible's B2B accounts",
   "scripts": {
