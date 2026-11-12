@@ -15,7 +15,7 @@ export default function ClientList({ rows, total, matched, page, pages, owners, 
   const href = (patch) => {
     const next = { ...filters, ...patch };
     const p = new URLSearchParams();
-    for (const [k, v] of Object.entries(next)) if (v && !(k === "sort" && v === "revenue") && !(k === "page" && Number(v) === 1)) p.set(k, v);
+    for (const [k, v] of Object.entries(next)) if (v && !(k === "sort" && v === "recent") && !(k === "page" && Number(v) === 1)) p.set(k, v);
     const s = p.toString();
     return s ? `/clients?${s}` : "/clients";
   };

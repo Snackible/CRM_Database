@@ -144,6 +144,19 @@ export default async function Overview({ searchParams }) {
             </dl>
           </Card>
 
+          <Card title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
+            <table className="tbl tbl-link">
+              <tbody>
+                {s.standing.map((c) => (
+                  <tr key={c.standing}>
+                    <td><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}><StatusChip standing={c.standing} /></Link></td>
+                    <td className="num"><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}>{c.n.toLocaleString("en-IN")}</Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
           <Card title="Revenue by month" sub="Last twelve months">
             {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
               <table className="tbl">
@@ -163,19 +176,6 @@ export default async function Overview({ searchParams }) {
         </div>
 
         <div>
-          <Card title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
-            <table className="tbl tbl-link">
-              <tbody>
-                {s.standing.map((c) => (
-                  <tr key={c.standing}>
-                    <td><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}><StatusChip standing={c.standing} /></Link></td>
-                    <td className="num"><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}>{c.n.toLocaleString("en-IN")}</Link></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-
           <Card title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>}>
             <table className="tbl">
               <tbody>

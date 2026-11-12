@@ -14,7 +14,7 @@ export default async function ClientsPage({ searchParams }) {
   const q = String(sp.q ?? "").trim();
   const standing = String(sp.standing ?? "");
   const owner = String(sp.owner ?? "");
-  const sort = SORTS.includes(sp.sort) ? sp.sort : "revenue";
+  const sort = SORTS.includes(sp.sort) ? sp.sort : "recent";
   const requested = Math.max(1, Number(sp.page) || 1);
   const [result, owners] = await Promise.all([clientsPage({ q, standing, owner, sort, page: requested, size: PAGE, channel: "b2b" }), ownerNames()]);
   const pages = Math.max(1, Math.ceil(result.matched / PAGE));
