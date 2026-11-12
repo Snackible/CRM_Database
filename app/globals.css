@@ -269,10 +269,13 @@ svg { flex: none; }
 .stage-chip.sm { font-size: 14px; gap: 6px; }
 .stage-chip.sm .mk { width: 14px; height: 14px; }
 
-/* A lead flagged urgent in its sheet: the same red cross-hatch mark as a lapsed/lost state, since it's the
-   same "needs attention now" signal, just shown ahead of the name instead of in the stage column. */
-.urgent-mark { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; color: var(--bad-ink); font: 800 12px var(--font-cond); letter-spacing: 0.06em; text-transform: uppercase; }
-.urgent-mark::before { content: ""; width: 10px; height: 10px; border: 2px solid currentColor; flex: none; background: repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 4px), repeating-linear-gradient(-45deg, currentColor 0 2px, transparent 2px 4px); }
+/* A lead flagged urgent in its sheet: a marked square, same device in the row and in the toolbar filter
+   button above it — red (filled) when a lead is urgent or the filter is on, hollow and quiet otherwise. */
+.urgent-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 8px; flex: none; padding: 0; border: 2px solid var(--rule); background: var(--pane); color: var(--muted); font: 800 16px/1 var(--font-cond); cursor: default; }
+.urgent-mark::before { content: "*"; }
+.urgent-mark.active { border-color: var(--bad); color: var(--bad-ink); }
+button.urgent-mark { cursor: pointer; }
+button.urgent-mark:hover { border-color: var(--bad); color: var(--bad-ink); }
 .tbl tr.urgent td:first-child { border-left: 3px solid var(--bad); }
 
 /* The editable form: the mark sits inside a field border, like an input with a leading icon. */

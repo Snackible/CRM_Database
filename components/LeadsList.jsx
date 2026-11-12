@@ -86,10 +86,14 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
           <select className="select" aria-label="Stage" value={filters.stage} onChange={(e) => go({ stage: e.target.value })}>
             {STAGE_FILTERS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
           </select>
-          <label className="row" style={{ gap: 6, fontWeight: 800 }}>
-            <input type="checkbox" checked={filters.urgent === "1"} onChange={(e) => go({ urgent: e.target.checked ? "1" : "" })} />
-            Urgent only
-          </label>
+          <button
+            type="button"
+            className={`urgent-mark${filters.urgent === "1" ? " active" : ""}`}
+            aria-pressed={filters.urgent === "1"}
+            aria-label="Urgent only"
+            title="Urgent only"
+            onClick={() => go({ urgent: filters.urgent === "1" ? "" : "1" })}
+          />
           <button className="btn sm" type="submit">Filter</button>
           {(filters.q || filters.owner || filters.stage || filters.urgent) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
         </form>
@@ -112,7 +116,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                 {rows.map((l) => (
                   <tr key={l.id} className={l.urgent ? "urgent" : undefined}>
                     <td>
-                      {l.urgent && <span className="urgent-mark">Urgent</span>}
+                      {l.urgent && <span className="urgent-mark active" aria-label="Urgent" title="Urgent" />}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
                     </td>
