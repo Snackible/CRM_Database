@@ -190,6 +190,9 @@ The same mark-plus-label device, reused for a lead's progress instead of a new c
 ### Urgent mark (lead flag)
 A 22px bordered square: empty and muted by default, filled red with a centred asterisk glyph (Lucide `Asterisk`) when a lead's "Level of Urgency" note says so. The same square doubles as the Leads toolbar's filter toggle — labelled "Urgent" and asterisk-filled only while the filter is on — so the on/off reading is identical in the row and in the control that sets it.
 
+### Quality chip (lead triage)
+The same chip device as a client's standing, reused for a lead's own "Quality" note (Suitable, Not suitable, CNA, Call Later, Cold): Suitable is the solid active mark, Not suitable the lapsed red cross-hatch, CNA/Call Later the single-hatch watch mark, and anything else — Cold included — the plain bordered tag with its own text. Filtered from the same toolbar as stage and urgent, including a "Not triaged" option for leads with no Quality note yet.
+
 ### Cards / Containers (panels)
 White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.
 

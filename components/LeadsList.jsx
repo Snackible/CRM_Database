@@ -12,7 +12,10 @@ import StageControl from "@/components/StageControl";
 // "(none)" is a real filter value (leads with no stage set yet), distinct from "" (any stage).
 const STAGE_FILTERS = [["", "Any stage"], ...LEAD_STAGES.map((s) => [s, s]), ["(none)", "No stage set"]];
 
-export default function LeadsList({ rows, total, pages, page, owners, filters }) {
+// Same chip device as a client's standing or an import's result, reused for how a lead was triaged.
+const QUALITY_CLASS = { Suitable: "active", "Not suitable": "lapsed", CNA: "watch", "Call Later": "watch" };
+
+export default function LeadsList({ rows, total, pages, page, owners, qualities, filters }) {
   const router = useRouter();
   const [saving, setSaving] = useState(null); // the lead id currently being saved, or null
   const [error, setError] = useState("");
@@ -86,6 +89,13 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
           <select className="select" aria-label="Stage" value={filters.stage} onChange={(e) => go({ stage: e.target.value })}>
             {STAGE_FILTERS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
           </select>
+          {qualities.length > 0 && (
+            <select className="select" aria-label="Quality" value={filters.quality} onChange={(e) => go({ quality: e.target.value })}>
+              <option value="">Any quality</option>
+              {qualities.map((q) => <option key={q} value={q}>{q}</option>)}
+              <option value="(none)">Not triaged</option>
+            </select>
+          )}
           <button
             type="button"
             className="urgent-toggle"
@@ -98,7 +108,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
             Urgent
           </button>
           <button className="btn sm" type="submit">Filter</button>
-          {(filters.q || filters.owner || filters.stage || filters.urgent) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
+          {(filters.q || filters.owner || filters.stage || filters.urgent || filters.quality) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
         </form>
 
         {error && <div className="notice" role="alert" style={{ margin: "0 12px 12px" }}>{error}</div>}
@@ -106,14 +116,14 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
 
         {rows.length === 0 ? (
           <div className="empty">
-            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent ? "No leads yet" : "No lead matches"}</h3>
-            {total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
+            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality ? "No leads yet" : "No lead matches"}</h3>
+            {total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
           </div>
         ) : (
           <div className="table-wrap">
             <table className="tbl">
               <thead>
-                <tr><th>Lead</th><th>Contact</th><th className="col-hide">Owner</th><th>Stage</th><th className="col-hide">Latest note</th><th>Last touched</th></tr>
+                <tr><th>Lead</th><th>Contact</th><th className="col-hide">Owner</th><th>Stage</th><th className="col-hide">Quality</th><th className="col-hide">Latest note</th><th>Last touched</th></tr>
               </thead>
               <tbody>
                 {rows.map((l) => (
@@ -160,6 +170,7 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                     <td>
                       <StageControl stage={l.lead_stage} onChange={(s) => setStage(l, s)} disabled={saving === l.id} size="sm" />
                     </td>
+                    <td className="col-hide">{l.quality ? <span className={`chip ${QUALITY_CLASS[l.quality] ?? "plain"}`}>{l.quality}</span> : <span className="muted">—</span>}</td>
                     <td className="col-hide" style={{ maxWidth: 420 }}>{l.last_note ? notePreview(l.last_note) : <span className="muted">No notes</span>}</td>
                     <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "—"}</td>
                   </tr>
