@@ -90,7 +90,7 @@ The Overview, Clients and Insights pages count **B2B channel orders only** — Z
 
 ## Lead stages
 
-Each lead has a **Stage** (New, Contacted, Qualified, Negotiating, Won, Lost — `lib/constants.js`), shown as a coloured pill that darkens as a lead moves along (Lost is red, the app's one accent colour) so it reads at a glance and never blends into the standing chip next to it. It is editable from the Leads page, the Overview's and Insights' "Leads waiting" cards (read-only there), and right on the lead's own page next to its "Lead" status — pick a value and it saves immediately. The Leads page also filters by stage, including "No stage set" for leads nobody has triaged yet. Anyone signed in can set a stage; only hiding a client needs an admin.
+Each lead has a **Stage** (New, Contacted, Cost sheet, Sample, Meeting, Negotiating, Won, Lost — `lib/constants.js`), shown as a coloured pill that darkens as a lead moves along (Lost is red, the app's one accent colour) so it reads at a glance and never blends into the standing chip next to it. It is editable from the Leads page, the Overview's and Insights' "Leads waiting" cards (read-only there), and right on the lead's own page next to its "Lead" status — pick a value and it saves immediately. A leads-sheet import also advances it on its own, forward only, when a row's remarks, follow-up or status text names "cost sheet", "sample" or "meeting" (`lib/normalize.js`'s `detectLeadStage`). The Leads page also filters by stage, including "No stage set" for leads nobody has triaged yet, and by "Urgent" leads (a sheet's "Level of Urgency" note saying so). Anyone signed in can set a stage; only hiding a client needs an admin.
 
 ## The chat (Ask)
 

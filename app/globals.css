@@ -260,9 +260,11 @@ svg { flex: none; }
 .stage-chip .mk { width: 18px; height: 18px; border: 2px solid currentColor; flex: none; background: transparent; }
 .stage-chip[data-stage=""] { color: var(--muted); }
 .stage-chip[data-stage=""] .mk { border-style: dotted; border-color: color-mix(in srgb, currentColor 55%, transparent); }
-.stage-chip[data-stage="Contacted"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 9px); }
-.stage-chip[data-stage="Qualified"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 6px); }
-.stage-chip[data-stage="Negotiating"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 5px); }
+.stage-chip[data-stage="Contacted"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 10px); }
+.stage-chip[data-stage="Cost sheet"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 8px); }
+.stage-chip[data-stage="Sample"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 6px); }
+.stage-chip[data-stage="Meeting"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 5px); }
+.stage-chip[data-stage="Negotiating"] .mk { background: repeating-linear-gradient(135deg, currentColor 0 3px, transparent 3px 3px); }
 .stage-chip[data-stage="Won"] .mk { background: var(--ok); border-color: var(--ok); }
 .stage-chip[data-stage="Lost"] { color: var(--bad-ink); }
 .stage-chip[data-stage="Lost"] .mk { border-color: var(--bad); background: repeating-linear-gradient(45deg, var(--bad) 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, var(--bad) 0 2px, transparent 2px 5px); }
@@ -270,12 +272,13 @@ svg { flex: none; }
 .stage-chip.sm .mk { width: 14px; height: 14px; }
 
 /* A lead flagged urgent in its sheet: a marked square, same device in the row and in the toolbar filter
-   button above it — red (filled) when a lead is urgent or the filter is on, hollow and quiet otherwise. */
-.urgent-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 8px; flex: none; padding: 0; border: 2px solid var(--rule); background: var(--pane); color: var(--muted); font: 800 16px/1 var(--font-cond); cursor: default; }
-.urgent-mark::before { content: "*"; }
+   button above it — red (filled with an asterisk) when urgent or the filter is on, empty and quiet otherwise. */
+.urgent-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex: none; border: 2px solid var(--rule); background: var(--pane); color: var(--muted); }
 .urgent-mark.active { border-color: var(--bad); color: var(--bad-ink); }
-button.urgent-mark { cursor: pointer; }
-button.urgent-mark:hover { border-color: var(--bad); color: var(--bad-ink); }
+.urgent-mark svg { width: 100%; height: 100%; padding: 2px; }
+.urgent-toggle { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 4px; border: 0; background: transparent; color: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+.urgent-toggle:hover .urgent-mark:not(.active) { border-color: var(--bad); color: var(--bad-ink); }
+.tbl .urgent-mark { margin-right: 8px; }
 .tbl tr.urgent td:first-child { border-left: 3px solid var(--bad); }
 
 /* The editable form: the mark sits inside a field border, like an input with a leading icon. */

@@ -185,7 +185,10 @@ Zero radius on every control, sheet, chip and cell. Borders carry the form: 2px 
 An 18px square mark plus caps label. Active = solid black; watch = single 135deg hatch; lapsed = red border with red cross-hatch; new = hollow; lead = a centred dot. A plain variant is a bordered wash tag without a mark.
 
 ### Stage chip (lead stage)
-The same mark-plus-label device, reused for a lead's progress instead of a new colour system: no stage is a dotted muted mark, then New (hollow) through Contacted/Qualified/Negotiating climb the Berth load scale (9px, 6px, 5px hatch), Won is solid, and Lost breaks the climb for the lapsed mark (red border, red cross-hatch). Read-only, it is a bare chip; editable, the mark sits inside a 2px-bordered field housing a real `<select>` (`components/StageControl.jsx`), so it keeps native keyboard and screen-reader behaviour while looking like the rest of the state vocabulary, not a tinted SaaS badge.
+The same mark-plus-label device, reused for a lead's progress instead of a new colour system: no stage is a dotted muted mark, then New (hollow) through Contacted/Cost sheet/Sample/Meeting/Negotiating climb the Berth load scale (10, 8, 6, 5, 3px hatch), Won is solid, and Lost breaks the climb for the lapsed mark (red border, red cross-hatch). Read-only, it is a bare chip; editable, the mark sits inside a 2px-bordered field housing a real `<select>` (`components/StageControl.jsx`), so it keeps native keyboard and screen-reader behaviour while looking like the rest of the state vocabulary, not a tinted SaaS badge.
+
+### Urgent mark (lead flag)
+A 22px bordered square: empty and muted by default, filled red with a centred asterisk glyph (Lucide `Asterisk`) when a lead's "Level of Urgency" note says so. The same square doubles as the Leads toolbar's filter toggle — labelled "Urgent" and asterisk-filled only while the filter is on — so the on/off reading is identical in the row and in the control that sets it.
 
 ### Cards / Containers (panels)
 White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.

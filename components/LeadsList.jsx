@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Pencil, Phone, Upload } from "lucide-react";
+import { Asterisk, ChevronLeft, ChevronRight, Pencil, Phone, Upload } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel, notePreview } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -88,12 +88,15 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
           </select>
           <button
             type="button"
-            className={`urgent-mark${filters.urgent === "1" ? " active" : ""}`}
+            className="urgent-toggle"
             aria-pressed={filters.urgent === "1"}
-            aria-label="Urgent only"
-            title="Urgent only"
             onClick={() => go({ urgent: filters.urgent === "1" ? "" : "1" })}
-          />
+          >
+            <span className={`urgent-mark${filters.urgent === "1" ? " active" : ""}`} aria-hidden="true">
+              {filters.urgent === "1" && <Asterisk size={14} strokeWidth={3} />}
+            </span>
+            Urgent
+          </button>
           <button className="btn sm" type="submit">Filter</button>
           {(filters.q || filters.owner || filters.stage || filters.urgent) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
         </form>
@@ -116,7 +119,11 @@ export default function LeadsList({ rows, total, pages, page, owners, filters })
                 {rows.map((l) => (
                   <tr key={l.id} className={l.urgent ? "urgent" : undefined}>
                     <td>
-                      {l.urgent && <span className="urgent-mark active" aria-label="Urgent" title="Urgent" />}
+                      {l.urgent && (
+                        <span className="urgent-mark active" aria-label="Urgent" title="Urgent">
+                          <Asterisk size={14} strokeWidth={3} aria-hidden="true" />
+                        </span>
+                      )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
                     </td>
