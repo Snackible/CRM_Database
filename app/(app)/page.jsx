@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { overview } from "@/lib/queries";
 import { agoLabel, dateLabel, money, notePreview } from "@/lib/format";
 import { BerthStrip, StatusChip } from "@/components/Berth";
-import { Bar, Card, CollapsibleCard } from "@/components/Cards";
+import { Bar, CollapsibleCard } from "@/components/Cards";
 import MonthPicker from "@/components/MonthPicker";
 import StageControl from "@/components/StageControl";
 import { byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
@@ -122,95 +122,90 @@ export default async function Overview({ searchParams }) {
       </div>
 
       <div className="ov-grid">
-        <div>
-          <Card
-            title={s.period.isCurrent ? "This month so far" : monthLabel}
-            sub={
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                {s.period.isCurrent ? `1–${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, vs. same days last month` : "Vs. the month before, in full"}
-                <MonthPicker value={month} options={monthOptions} />
-              </span>
-            }
-          >
-            <dl className="fig-list">
-              <div className="lead"><dt>Revenue</dt><dd>{money(s.mtd.revenue)}<Change now={s.mtd.revenue} before={s.lastMtd.revenue} /></dd></div>
-              <div><dt>Orders</dt><dd>{s.mtd.orders.toLocaleString("en-IN")}<Change now={s.mtd.orders} before={s.lastMtd.orders} /></dd></div>
-              <div><dt>Clients ordering</dt><dd>{s.mtd.clients.toLocaleString("en-IN")}<Change now={s.mtd.clients} before={s.lastMtd.clients} /></dd></div>
-              <div><dt>Average order</dt><dd>{money(avg(s.mtd))}<Change now={avg(s.mtd)} before={avg(s.lastMtd)} /></dd></div>
-              <div><dt>{s.period.isCurrent ? "Same days last month" : "Month before"}</dt><dd className="muted">{money(s.lastMtd.revenue)}</dd></div>
-            </dl>
-          </Card>
+        <CollapsibleCard
+          title={s.period.isCurrent ? "This month so far" : monthLabel}
+          sub={
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {s.period.isCurrent ? `1–${today.getDate()} ${today.toLocaleDateString("en-IN", { month: "short" })}, vs. same days last month` : "Vs. the month before, in full"}
+              <MonthPicker value={month} options={monthOptions} />
+            </span>
+          }
+        >
+          <dl className="fig-list">
+            <div className="lead"><dt>Revenue</dt><dd>{money(s.mtd.revenue)}<Change now={s.mtd.revenue} before={s.lastMtd.revenue} /></dd></div>
+            <div><dt>Orders</dt><dd>{s.mtd.orders.toLocaleString("en-IN")}<Change now={s.mtd.orders} before={s.lastMtd.orders} /></dd></div>
+            <div><dt>Clients ordering</dt><dd>{s.mtd.clients.toLocaleString("en-IN")}<Change now={s.mtd.clients} before={s.lastMtd.clients} /></dd></div>
+            <div><dt>Average order</dt><dd>{money(avg(s.mtd))}<Change now={avg(s.mtd)} before={avg(s.lastMtd)} /></dd></div>
+            <div><dt>{s.period.isCurrent ? "Same days last month" : "Month before"}</dt><dd className="muted">{money(s.lastMtd.revenue)}</dd></div>
+          </dl>
+        </CollapsibleCard>
 
-          <CollapsibleCard title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
-            <table className="tbl tbl-link">
+        <CollapsibleCard title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>}>
+          <table className="tbl">
+            <tbody>
+              {s.top.map((c) => (
+                <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="num nowrap">{money(c.revenue)}</td><td className="num col-hide">{c.orders.toLocaleString("en-IN")} orders</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </CollapsibleCard>
+
+        <CollapsibleCard title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
+          <table className="tbl tbl-link">
+            <tbody>
+              {s.standing.map((c) => (
+                <tr key={c.standing}>
+                  <td><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}><StatusChip standing={c.standing} /></Link></td>
+                  <td className="num"><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}>{c.n.toLocaleString("en-IN")}</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CollapsibleCard>
+
+        <CollapsibleCard title={s.period.isCurrent ? "New clients this month" : `New clients, ${monthLabel}`} sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
+          {s.fresh.rows.length === 0 ? <div className="empty">{s.period.isCurrent ? "No first orders yet this month." : `No first orders in ${monthLabel}.`}</div> : (
+            <table className="tbl">
               <tbody>
-                {s.standing.map((c) => (
-                  <tr key={c.standing}>
-                    <td><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}><StatusChip standing={c.standing} /></Link></td>
-                    <td className="num"><Link href={`/clients?standing=${encodeURIComponent(c.standing)}`}>{c.n.toLocaleString("en-IN")}</Link></td>
+                {s.fresh.rows.map((c) => (
+                  <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="nowrap">{dateLabel(c.first, false)}</td><td className="num nowrap">{money(c.revenue)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CollapsibleCard>
+
+        <CollapsibleCard title="Revenue by month" sub="Last twelve months">
+          {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
+            <table className="tbl">
+              <tbody>
+                {s.months.map((m) => (
+                  <tr key={m.month}>
+                    <td className="nowrap" style={{ width: 110 }}>{new Date(`${m.month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</td>
+                    <td style={{ width: "46%" }}><Bar value={m.revenue} max={maxMonth} /></td>
+                    <td className="num nowrap">{money(m.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </CollapsibleCard>
+          )}
+        </CollapsibleCard>
 
-          <CollapsibleCard title="Revenue by month" sub="Last twelve months">
-            {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
-              <table className="tbl">
-                <tbody>
-                  {s.months.map((m) => (
-                    <tr key={m.month}>
-                      <td className="nowrap" style={{ width: 110 }}>{new Date(`${m.month}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</td>
-                      <td style={{ width: "46%" }}><Bar value={m.revenue} max={maxMonth} /></td>
-                      <td className="num nowrap">{money(m.revenue)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </CollapsibleCard>
-
-        </div>
-
-        <div>
-          <CollapsibleCard title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>} defaultOpen>
+        <CollapsibleCard title="Leads waiting" sub={`${s.leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>}>
+          {s.leads.rows.length === 0 ? <div className="empty">No open leads.</div> : (
             <table className="tbl">
               <tbody>
-                {s.top.map((c) => (
-                  <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="num nowrap">{money(c.revenue)}</td><td className="num col-hide">{c.orders.toLocaleString("en-IN")} orders</td></tr>
+                {s.leads.rows.map((l) => (
+                  <tr key={l.id}>
+                    <td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td>
+                    <td><StageControl stage={l.lead_stage} size="sm" /></td>
+                    <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
-          </CollapsibleCard>
-
-          <CollapsibleCard title={s.period.isCurrent ? "New clients this month" : `New clients, ${monthLabel}`} sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
-            {s.fresh.rows.length === 0 ? <div className="empty">{s.period.isCurrent ? "No first orders yet this month." : `No first orders in ${monthLabel}.`}</div> : (
-              <table className="tbl">
-                <tbody>
-                  {s.fresh.rows.map((c) => (
-                    <tr key={c.id}><td><Link className="name" href={`/clients/${c.id}`}>{c.name}</Link></td><td className="nowrap">{dateLabel(c.first, false)}</td><td className="num nowrap">{money(c.revenue)}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </CollapsibleCard>
-
-          <CollapsibleCard title="Leads waiting" sub={`${s.leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>} defaultOpen>
-            {s.leads.rows.length === 0 ? <div className="empty">No open leads.</div> : (
-              <table className="tbl">
-                <tbody>
-                  {s.leads.rows.map((l) => (
-                    <tr key={l.id}>
-                      <td><Link className="name" href={`/clients/${l.id}`}>{l.name}</Link><span className="sub">{l.owner}</span></td>
-                      <td><StageControl stage={l.lead_stage} size="sm" /></td>
-                      <td className="nowrap">{l.last_touch ? dateLabel(l.last_touch, false) : "never"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </CollapsibleCard>
-        </div>
+          )}
+        </CollapsibleCard>
       </div>
 
       <div className="two-col">
