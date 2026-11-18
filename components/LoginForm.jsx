@@ -6,7 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import { api } from "@/lib/client-api";
 import Logo from "@/components/Logo";
 
-export default function LoginForm({ mode, canRegister, version }) {
+export default function LoginForm({ mode, canRegister, canReset, version }) {
   const accounts = mode === "accounts";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +49,7 @@ export default function LoginForm({ mode, canRegister, version }) {
         </div>
         <button className="btn primary" type="submit" disabled={busy || !username.trim() || !password}>{busy ? "Signing in…" : "Sign in"}</button>
         {canRegister && <p><Link href="/register">Register a new user</Link></p>}
+        {canReset && <p><Link href="/reset-password">Reset a password</Link></p>}
         {version && <p className="muted ver" title={`Release ${version.version}, commit ${version.commit}`} style={{ marginTop: 4 }}>{version.label}</p>}
       </form>
     </main>

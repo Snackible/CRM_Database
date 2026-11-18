@@ -43,7 +43,9 @@ npm run check-accounts
 
 **Register a new user** (link on the sign-in page): anyone who knows the master password (the password of the `master-admin` row) can add a BD or Ops account; the row is appended to the sheet. Admins are added in the sheet by hand. With no `master-admin` row, registration is off. Failed guesses are rate limited.
 
-Known limit: passwords in the sheet are plain text, as in the Delivery Tracker. A hashed column is the sensible next step. Sessions last 12 hours and are not revoked if a row is removed before then.
+**Reset a password** (link on the sign-in page, shown only when at least one account is marked): mark a row's `Reset` column with a `*` (anything non-blank works) to ask for a new password — the account holder can do this themselves if they still have sheet access, or ask whoever does. The master password then sets a new one for that account, and the mark is cleared so the same request can't be replayed. Knowing the master password alone does not let anyone reset an account that hasn't been marked. Same convention as the Delivery Tracker, which shares this sheet.
+
+Passwords in the sheet are salted hashes (`lib/pinVault.js`, the same file the Delivery Tracker uses); a plain-text one typed into the sheet is hashed the next time the accounts are read. Sessions last 12 hours and are not revoked if a row is removed before then.
 
 With `ACCOUNTS_SHEET_ID` empty (local trials only) the app falls back to one shared `PORTAL_PASSWORD` plus a name.
 

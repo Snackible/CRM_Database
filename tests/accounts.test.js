@@ -5,7 +5,7 @@ process.env.ACCOUNTS_GID = "42";
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { authenticate, clearAccountsCache, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled } from "../lib/accounts.js";
+import { authenticate, clearAccountsCache, getResetRequests, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled, resetAccountPassword } from "../lib/accounts.js";
 import { createSessionValue, readSessionValue } from "../lib/session.js";
 import { cleanEmail, cleanPhone } from "../lib/contacts.js";
 import { isEncrypted, verifyPin } from "../lib/pinVault.js";
@@ -233,6 +233,54 @@ test("passwords: plain text still signs in, and is hashed in the sheet the next 
   clearAccountsCache();
   await authenticate("meera", "bd-pass-1", "p3", deps);
   assert.equal(writes.length, before);
+});
+
+test("getResetRequests lists only accounts marked in the Reset column, excluding contact-only rows", async () => {
+  clearAccountsCache();
+  const headers = [...HEADERS, "Reset"];
+  const rows = [
+    { ...row("meera", "bd-pass-1", "b2b", "Meera Rao"), Reset: "" },
+    { ...row("karan", "bd-pass-2", "b2b", "Karan"), Reset: "*" },
+    { ...row("nopass", "", "b2b", "No Password"), Reset: "*" },
+  ];
+  const { deps } = fakeSheet(rows, headers);
+  assert.deepEqual(await getResetRequests(deps), [{ username: "karan", name: "Karan" }]);
+});
+
+test("resetting a password needs the master password AND a Reset mark, then clears the mark so it can't be replayed", async () => {
+  clearAccountsCache();
+  const headers = [...HEADERS, "Reset"];
+  const rows = [
+    { ...row("meera", "bd-pass-1", "b2b", "Meera Rao"), Reset: "" },
+    { ...row("karan", "old-pass", "b2b", "Karan"), Reset: "*" },
+    { ...row("boss", "master-pass", "master-admin", "The Boss"), Reset: "" },
+  ];
+  const { deps } = writableSheet(rows, headers);
+
+  await assert.rejects(() => resetAccountPassword({ master: "wrong", username: "karan", password: "new-pass-1" }, { ip: "rs1", ...deps }), (e) => e.status === 401);
+  await assert.rejects(
+    () => resetAccountPassword({ master: "master-pass", username: "meera", password: "new-pass-1" }, { ip: "rs2", ...deps }),
+    (e) => e.status === 409 && /has not asked for a reset/.test(e.message),
+  );
+  await assert.rejects(() => resetAccountPassword({ master: "master-pass", username: "karan", password: "123" }, { ip: "rs3", ...deps }), /at least 6/);
+
+  const done = await resetAccountPassword({ master: "master-pass", username: "karan", password: "new-pass-1" }, { ip: "rs4", ...deps });
+  assert.equal(done.username, "karan");
+  const karanRow = rows.find((r) => r.username === "karan");
+  assert.equal(karanRow.Reset, "", "the mark is cleared");
+  assert.equal(isEncrypted(karanRow.password), true, "stored as a hash, never as typed");
+  assert.equal(await verifyPin("new-pass-1", karanRow.password), true);
+
+  clearAccountsCache();
+  assert.equal((await authenticate("karan", "new-pass-1", "rs5", deps)).role, "b2b");
+  await assert.rejects(() => authenticate("karan", "old-pass", "rs6", deps), (e) => e.status === 401, "the old password stops working");
+
+  clearAccountsCache();
+  await assert.rejects(
+    () => resetAccountPassword({ master: "master-pass", username: "karan", password: "another-pass" }, { ip: "rs7", ...deps }),
+    (e) => e.status === 409,
+    "the same request cannot be replayed once the mark is cleared",
+  );
 });
 
 test("passwords: a sheet that cannot be written to still signs people in", async () => {
