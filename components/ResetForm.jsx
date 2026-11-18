@@ -41,6 +41,21 @@ export default function ResetForm({ requests }) {
     );
   }
 
+  if (!requests.length) {
+    return (
+      <main className="login">
+        <div className="login-box">
+          <div className="brand"><span className="brand-name">Snackible<small>Client record</small></span></div>
+          <div className="notice" role="status">
+            <AlertTriangle size={20} aria-hidden="true" />
+            <div>No account is currently marked for a reset. Mark a row's <b>Reset</b> column with <b>*</b> in the accounts sheet, or contact the AI team for the master admin password.</div>
+          </div>
+          <Link className="btn primary" href="/login">Back to sign in</Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="login">
       <form className="login-box" onSubmit={submit}>

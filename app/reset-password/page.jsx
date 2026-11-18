@@ -8,6 +8,5 @@ export const dynamic = "force-dynamic";
 export default async function ResetPasswordPage() {
   if (!accountsConfigured() || !(await registrationEnabled())) redirect("/login");
   const requests = await getResetRequests();
-  if (!requests.length) redirect("/login");
   return <ResetForm requests={requests} />;
 }
