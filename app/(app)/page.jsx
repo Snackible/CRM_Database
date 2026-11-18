@@ -141,7 +141,7 @@ export default async function Overview({ searchParams }) {
             </dl>
           </Card>
 
-          <Card title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
+          <CollapsibleCard title="Clients by standing" sub={`${standingTotal.toLocaleString("en-IN")} in all`}>
             <table className="tbl tbl-link">
               <tbody>
                 {s.standing.map((c) => (
@@ -152,7 +152,7 @@ export default async function Overview({ searchParams }) {
                 ))}
               </tbody>
             </table>
-          </Card>
+          </CollapsibleCard>
 
           <CollapsibleCard title="Revenue by month" sub="Last twelve months">
             {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
@@ -173,7 +173,7 @@ export default async function Overview({ searchParams }) {
         </div>
 
         <div>
-          <Card title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>}>
+          <CollapsibleCard title="Biggest this year" sub={`These ${s.top.length} are ${topShare}% of this year's revenue`} more={<Link href="/clients">All clients</Link>} defaultOpen>
             <table className="tbl">
               <tbody>
                 {s.top.map((c) => (
@@ -181,9 +181,9 @@ export default async function Overview({ searchParams }) {
                 ))}
               </tbody>
             </table>
-          </Card>
+          </CollapsibleCard>
 
-          <Card title={s.period.isCurrent ? "New clients this month" : `New clients, ${monthLabel}`} sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
+          <CollapsibleCard title={s.period.isCurrent ? "New clients this month" : `New clients, ${monthLabel}`} sub={`${s.fresh.total.toLocaleString("en-IN")} placed their first order`}>
             {s.fresh.rows.length === 0 ? <div className="empty">{s.period.isCurrent ? "No first orders yet this month." : `No first orders in ${monthLabel}.`}</div> : (
               <table className="tbl">
                 <tbody>
@@ -193,9 +193,9 @@ export default async function Overview({ searchParams }) {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
 
-          <Card title="Leads waiting" sub={`${s.leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>}>
+          <CollapsibleCard title="Leads waiting" sub={`${s.leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>} defaultOpen>
             {s.leads.rows.length === 0 ? <div className="empty">No open leads.</div> : (
               <table className="tbl">
                 <tbody>
@@ -209,7 +209,7 @@ export default async function Overview({ searchParams }) {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
         </div>
       </div>
 

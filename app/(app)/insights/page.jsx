@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AskBox from "@/components/AskBox";
-import { Bar, Card } from "@/components/Cards";
+import { Bar, Card, CollapsibleCard } from "@/components/Cards";
 import { byMonth, leadsSummary, newClients, quietRegulars, topClients, totals } from "@/lib/insights";
 import { parsePeriod } from "@/lib/periods";
 import { isoDay } from "@/lib/metrics";
@@ -55,7 +55,7 @@ export default async function InsightsPage() {
             </div>
           </Card>
 
-          <Card title="Revenue by month" sub="Last twelve months">
+          <CollapsibleCard title="Revenue by month" sub="Last twelve months">
             {months.length === 0 ? <div className="empty">No orders yet.</div> : (
               <table className="tbl">
                 <tbody>
@@ -70,9 +70,9 @@ export default async function InsightsPage() {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
 
-          <Card title="Top clients this year" sub={`These 8 are ${topShare}% of this year's revenue`}>
+          <CollapsibleCard title="Top clients this year" sub={`These 8 are ${topShare}% of this year's revenue`} defaultOpen>
             <table className="tbl">
               <tbody>
                 {top.map((c) => (
@@ -80,12 +80,12 @@ export default async function InsightsPage() {
                 ))}
               </tbody>
             </table>
-          </Card>
+          </CollapsibleCard>
 
         </div>
 
         <div>
-          <Card title="Regulars gone quiet" sub={`${quiet.total.toLocaleString("en-IN")} clients with 3+ orders are past twice their usual gap`}>
+          <CollapsibleCard title="Regulars gone quiet" sub={`${quiet.total.toLocaleString("en-IN")} clients with 3+ orders are past twice their usual gap`} defaultOpen>
             {quiet.rows.length === 0 ? <div className="empty">No regular client is overdue.</div> : (
               <table className="tbl">
                 <tbody>
@@ -99,9 +99,9 @@ export default async function InsightsPage() {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
 
-          <Card title="New clients this month" sub={`${fresh.total.toLocaleString("en-IN")} placed their first order`}>
+          <CollapsibleCard title="New clients this month" sub={`${fresh.total.toLocaleString("en-IN")} placed their first order`}>
             {fresh.rows.length === 0 ? <div className="empty">No first orders yet this month.</div> : (
               <table className="tbl">
                 <tbody>
@@ -111,9 +111,9 @@ export default async function InsightsPage() {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
 
-          <Card title="Leads waiting" sub={`${leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>}>
+          <CollapsibleCard title="Leads waiting" sub={`${leads.total.toLocaleString("en-IN")} with no order yet, longest untouched first`} more={<Link href="/leads">All leads</Link>} defaultOpen>
             {leads.rows.length === 0 ? <div className="empty">No open leads.</div> : (
               <table className="tbl">
                 <tbody>
@@ -127,7 +127,7 @@ export default async function InsightsPage() {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
         </div>
       </div>
     </>
