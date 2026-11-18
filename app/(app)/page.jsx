@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { overview } from "@/lib/queries";
 import { agoLabel, dateLabel, money, notePreview } from "@/lib/format";
 import { BerthStrip, StatusChip } from "@/components/Berth";
-import { Bar, Card } from "@/components/Cards";
+import { Bar, Card, CollapsibleCard } from "@/components/Cards";
 import MonthPicker from "@/components/MonthPicker";
 import StageControl from "@/components/StageControl";
 import { byMonth, leadsSummary, newClients, standingCounts, topClients, totals } from "@/lib/insights";
@@ -154,7 +154,7 @@ export default async function Overview({ searchParams }) {
             </table>
           </Card>
 
-          <Card title="Revenue by month" sub="Last twelve months">
+          <CollapsibleCard title="Revenue by month" sub="Last twelve months">
             {s.months.length === 0 ? <div className="empty">No orders yet.</div> : (
               <table className="tbl">
                 <tbody>
@@ -168,7 +168,7 @@ export default async function Overview({ searchParams }) {
                 </tbody>
               </table>
             )}
-          </Card>
+          </CollapsibleCard>
 
         </div>
 
@@ -219,20 +219,26 @@ export default async function Overview({ searchParams }) {
             <h2 id="attn-h">Gone quiet</h2>
             <span className="sub">No order for more than {days} days. Showing {o.attention.length} of {o.attentionCount.toLocaleString("en-IN")}</span>
           </div>
-          <div className="toolbar" role="group" aria-label="Sort gone quiet list">
-            <span className="sub-lab">Sort</span>
-            <span className="seg">
-              {SORTS.map(([k, label]) => (
-                <Link key={k} href={href({ sort: k })} aria-current={sort === k ? "true" : undefined} scroll={false}>{label}</Link>
-              ))}
-            </span>
-            <span className="sub-lab">Quiet for over</span>
-            <span className="seg">
-              {DAYS.map((d) => (
-                <Link key={d} href={href({ days: d })} aria-current={days === d ? "true" : undefined} scroll={false}>{d} days</Link>
-              ))}
-            </span>
-          </div>
+          <details className="fold" aria-label="Sort gone quiet list">
+            <summary className="toolbar">
+              Sort & filter
+              <span className="sub fold-cue">{SORTS.find(([k]) => k === sort)?.[1]}, over {days} days<span className="fold-arrow" aria-hidden="true" /></span>
+            </summary>
+            <div className="toolbar" role="group">
+              <span className="sub-lab">Sort</span>
+              <span className="seg">
+                {SORTS.map(([k, label]) => (
+                  <Link key={k} href={href({ sort: k })} aria-current={sort === k ? "true" : undefined} scroll={false}>{label}</Link>
+                ))}
+              </span>
+              <span className="sub-lab">Quiet for over</span>
+              <span className="seg">
+                {DAYS.map((d) => (
+                  <Link key={d} href={href({ days: d })} aria-current={days === d ? "true" : undefined} scroll={false}>{d} days</Link>
+                ))}
+              </span>
+            </div>
+          </details>
           {o.attention.map((c) => (
             <div className="attn" key={c.id}>
               <div>
@@ -272,8 +278,7 @@ export default async function Overview({ searchParams }) {
             </section>
           )}
 
-          <section className="panel" aria-labelledby="act-h">
-            <div className="panel-head"><h2 id="act-h">Recently added</h2></div>
+          <CollapsibleCard title="Recently added" sub={`${o.recent.length} updates`}>
             {o.recent.length === 0 ? (
               <div className="empty">Notes and documents you add will show here.</div>
             ) : (
@@ -287,7 +292,7 @@ export default async function Overview({ searchParams }) {
                 ))}
               </ul>
             )}
-          </section>
+          </CollapsibleCard>
         </div>
       </div>
     </>

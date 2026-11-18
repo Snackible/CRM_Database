@@ -12,8 +12,9 @@ export default async function LeadsPage({ searchParams }) {
   const stage = String(sp.stage ?? "");
   const urgent = sp.urgent === "1";
   const quality = String(sp.quality ?? "");
+  const type = String(sp.type ?? "");
   const page = Math.max(1, Number(sp.page) || 1);
-  const { rows, total, owners, qualities } = await listLeads({ q, owner, stage, urgent, quality, page, size: SIZE });
+  const { rows, total, owners, qualities } = await listLeads({ q, owner, stage, urgent, quality, type, page, size: SIZE });
   const pages = Math.max(1, Math.ceil(total / SIZE));
   return (
     <LeadsList
@@ -23,7 +24,7 @@ export default async function LeadsPage({ searchParams }) {
       page={Math.min(page, pages)}
       owners={owners}
       qualities={qualities}
-      filters={{ q, owner, stage, urgent: urgent ? "1" : "", quality }}
+      filters={{ q, owner, stage, urgent: urgent ? "1" : "", quality, type }}
     />
   );
 }

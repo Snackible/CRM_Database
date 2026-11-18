@@ -13,3 +13,19 @@ export function Card({ title, sub, children, more }) {
     </section>
   );
 }
+
+/** Like Card, but closed by default — for secondary reading that would otherwise just add scroll. */
+export function CollapsibleCard({ title, sub, children, more, defaultOpen = false }) {
+  return (
+    <details className="panel fold" aria-label={title} open={defaultOpen || undefined}>
+      <summary className="panel-head">
+        <h2>{title}</h2>
+        <span className="sub fold-cue">{sub}<span className="fold-arrow" aria-hidden="true" /></span>
+      </summary>
+      <div>
+        {children}
+        {more ? <div className="panel-body" style={{ borderTop: "1px dotted var(--rule)" }}>{more}</div> : null}
+      </div>
+    </details>
+  );
+}

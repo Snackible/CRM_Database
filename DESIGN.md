@@ -193,8 +193,11 @@ A 22px bordered square: empty and muted by default, filled red with a centred as
 ### Quality tag (lead triage)
 A lead's own "Quality" note (Suitable, Not suitable, CNA, Call Later, Cold), read as a glyph in an 18px bordered square next to its caps label instead of hatch density — a plain tick for Suitable (solid black fill, white tick), a cross for Not suitable (red border, red cross), and a shape of its own for the others (a missed-call mark for CNA, a clock for Call Later, a snowflake for Cold), so each value is told apart by its icon rather than by degree. It sits in the Lead cell itself, under the name and source line, rather than owning a column — the same instinct as the urgent mark. Filtered from the same toolbar as stage and urgent, including a "Not triaged" option for leads with no Quality note yet.
 
+### Order-type tag (bulk/retail)
+No sheet has a column for this, so it's read straight off a lead's own remarks: a note that just says "bulk" or "retail" anywhere in it. Uses the same device as the Quality tag (icon-in-a-square next to caps label — a box for Bulk, a storefront for Retail), sits next to it in the Lead cell, and is filtered from the same toolbar. Leads whose remarks don't name either stay untagged and show nothing, by design.
+
 ### Cards / Containers (panels)
-White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps.
+White, 1px ink border, sheet shadow, black under-sheet. Head: 22px title, 3px ink rule under, min 46px. Body padding 14px. Panels stack with 22px gaps. A `CollapsibleCard` (`components/Cards.jsx`) is the same panel as a native `<details>`/`<summary>`, closed by default, for secondary reading on the Overview page (revenue by month, recently added) that would otherwise just add scroll — the summary keeps the panel head's title and sub-line plus a small CSS-only chevron, no icon import needed. The Gone-quiet list's sort/filter controls use the same closed-by-default `<details>` pattern inside their panel's toolbar, so the pill-link row doesn't sit on screen until asked for.
 
 ### Inputs / Fields
 White, 2px ink border, 40px minimum height, 12px padding, square. Labels above in tall caps, hints in graphite. Focus draws a 3px ink outline with no offset. Mono variant for codes and amounts.

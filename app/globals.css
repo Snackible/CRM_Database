@@ -361,6 +361,17 @@ svg { flex: none; }
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--rule); align-items: center; }
 .toolbar .input { max-width: 300px; }
 .toolbar .select { width: auto; min-width: 150px; }
+
+/* A <details> dressed up as a panel/toolbar header, closed by default: the content is a click away instead
+   of always on screen. The arrow is a CSS-only chevron (border trick) so no new icon import is needed. */
+.fold > summary { cursor: pointer; list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::marker { display: none; }
+.fold > summary:hover { background: var(--pane-2); }
+.fold-cue { display: inline-flex; align-items: center; gap: 8px; }
+.fold-arrow { display: inline-block; width: 6px; height: 6px; border: solid var(--muted); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.fold[open] > summary .fold-arrow { transform: rotate(-135deg); }
+.fold > summary.toolbar .fold-cue { margin-left: auto; }
 .empty { padding: 36px 20px; text-align: center; color: var(--muted); }
 .empty h3 { color: var(--ink); font-weight: 800; margin-bottom: 6px; font-size: 22px; }
 

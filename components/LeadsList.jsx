@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Asterisk, Check, ChevronLeft, ChevronRight, Clock, Pencil, Phone, PhoneMissed, Snowflake, Upload, X } from "lucide-react";
+import { Asterisk, Check, ChevronLeft, ChevronRight, Clock, Package, Pencil, Phone, PhoneMissed, Snowflake, Store, Upload, X } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel, notePreview } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -16,17 +16,17 @@ const STAGE_FILTERS = [["", "Any stage"], ...LEAD_STAGES.map((s) => [s, s]), ["(
 // tick/cross rather than two shades of the same mark; the others get their own shape too, same black/red ink.
 const QUALITY_ICON = { Suitable: Check, "Not suitable": X, CNA: PhoneMissed, "Call Later": Clock, Cold: Snowflake };
 const QUALITY_TONE = { Suitable: "good", "Not suitable": "bad" };
+const TYPE_ICON = { Bulk: Package, Retail: Store };
 
-function QualityTag({ quality, active, onClick }) {
-  const Icon = QUALITY_ICON[quality];
+function RowTag({ icon: Icon, tone, label, active, onClick }) {
   return (
-    <button type="button" className={`quality-tag${active ? " active" : ""}`} aria-pressed={active} title={`Filter by ${quality}`} onClick={onClick}>
+    <button type="button" className={`quality-tag${active ? " active" : ""}`} aria-pressed={active} title={`Filter by ${label}`} onClick={onClick}>
       {Icon && (
-        <span className={`quality-mark${QUALITY_TONE[quality] ? ` ${QUALITY_TONE[quality]}` : ""}`} aria-hidden="true">
+        <span className={`quality-mark${tone ? ` ${tone}` : ""}`} aria-hidden="true">
           <Icon size={13} strokeWidth={3} />
         </span>
       )}
-      {quality}
+      {label}
     </button>
   );
 }
@@ -112,6 +112,11 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
               <option value="(none)">Not triaged</option>
             </select>
           )}
+          <select className="select" aria-label="Order type" value={filters.type} onChange={(e) => go({ type: e.target.value })}>
+            <option value="">Bulk or retail</option>
+            <option value="Bulk">Bulk</option>
+            <option value="Retail">Retail</option>
+          </select>
           <button
             type="button"
             className="urgent-toggle"
@@ -124,7 +129,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
             Urgent
           </button>
           <button className="btn sm" type="submit">Filter</button>
-          {(filters.q || filters.owner || filters.stage || filters.urgent || filters.quality) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
+          {(filters.q || filters.owner || filters.stage || filters.urgent || filters.quality || filters.type) && <Link className="btn quiet sm" href="/leads">Clear</Link>}
         </form>
 
         {error && <div className="notice" role="alert" style={{ margin: "0 12px 12px" }}>{error}</div>}
@@ -132,8 +137,8 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
 
         {rows.length === 0 ? (
           <div className="empty">
-            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality ? "No leads yet" : "No lead matches"}</h3>
-            {total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
+            <h3>{total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality && !filters.type ? "No leads yet" : "No lead matches"}</h3>
+            {total === 0 && !filters.q && !filters.owner && !filters.stage && !filters.urgent && !filters.quality && !filters.type ? <>Connect a leads sheet such as the CCBD Tracker under <Link href="/purchases/import">Add, Purchase CSV or sheet</Link>.</> : "Clear the filter to see all leads."}
           </div>
         ) : (
           <div className="table-wrap">
@@ -153,10 +158,20 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
                       <span className="sub">{[l.source?.replace(/^Sheet: /, ""), l.city].filter(Boolean).join(" · ")}</span>
                       {l.quality && (
-                        <QualityTag
-                          quality={l.quality}
+                        <RowTag
+                          icon={QUALITY_ICON[l.quality]}
+                          tone={QUALITY_TONE[l.quality]}
+                          label={l.quality}
                           active={filters.quality === l.quality}
                           onClick={() => go({ quality: filters.quality === l.quality ? "" : l.quality })}
+                        />
+                      )}
+                      {l.order_type && (
+                        <RowTag
+                          icon={TYPE_ICON[l.order_type]}
+                          label={l.order_type}
+                          active={filters.type === l.order_type}
+                          onClick={() => go({ type: filters.type === l.order_type ? "" : l.order_type })}
                         />
                       )}
                     </td>
