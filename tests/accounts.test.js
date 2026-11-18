@@ -283,6 +283,29 @@ test("resetting a password needs the master password AND a Reset mark, then clea
   );
 });
 
+test('a "***" mark stands: it stays after a reset, so the same row can be reset again without re-marking it', async () => {
+  clearAccountsCache();
+  const headers = [...HEADERS, "Reset"];
+  const rows = [
+    { ...row("bulk-import", "old-bulk-pass", "b2b", "Bulk Import"), Reset: "***" },
+    { ...row("boss", "master-pass", "master-admin", "The Boss"), Reset: "" },
+  ];
+  const { deps } = writableSheet(rows, headers);
+
+  await resetAccountPassword({ master: "master-pass", username: "bulk-import", password: "bulk-pass-1" }, { ip: "rs8", ...deps });
+  assert.equal(rows.find((r) => r.username === "bulk-import").Reset, "***", 'the "***" mark is left in place');
+  assert.deepEqual(await getResetRequests(deps), [{ username: "bulk-import", name: "Bulk Import" }]);
+
+  clearAccountsCache();
+  // reset again, straight away, with no need to re-mark the row in between
+  await resetAccountPassword({ master: "master-pass", username: "bulk-import", password: "bulk-pass-2" }, { ip: "rs9", ...deps });
+  assert.equal(rows.find((r) => r.username === "bulk-import").Reset, "***");
+
+  clearAccountsCache();
+  assert.equal((await authenticate("bulk-import", "bulk-pass-2", "rs10", deps)).role, "b2b");
+  await assert.rejects(() => authenticate("bulk-import", "bulk-pass-1", "rs11", deps), (e) => e.status === 401, "the first reset's password stops working");
+});
+
 test("passwords: a sheet that cannot be written to still signs people in", async () => {
   clearAccountsCache();
   const rows = people();
