@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Asterisk, Check, ChevronLeft, ChevronRight, Clock, Package, Pencil, Phone, PhoneMissed, Snowflake, Store, Upload, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Clock, Package, Pencil, Phone, PhoneMissed, Snowflake, Store, Upload, X } from "lucide-react";
 import { LEAD_STAGES } from "@/lib/constants";
 import { dateLabel, notePreview } from "@/lib/format";
 import { api } from "@/lib/client-api";
@@ -124,7 +124,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
             onClick={() => go({ urgent: filters.urgent === "1" ? "" : "1" })}
           >
             <span className={`urgent-mark${filters.urgent === "1" ? " active" : ""}`} aria-hidden="true">
-              {filters.urgent === "1" && <Asterisk size={14} strokeWidth={3} />}
+              {filters.urgent === "1" && <Clock size={14} strokeWidth={3} />}
             </span>
             Urgent
           </button>
@@ -152,7 +152,7 @@ export default function LeadsList({ rows, total, pages, page, owners, qualities,
                     <td>
                       {l.urgent && (
                         <button type="button" className="urgent-mark active" aria-label="Urgent" title="Filter by Urgent" onClick={() => go({ urgent: filters.urgent === "1" ? "" : "1" })}>
-                          <Asterisk size={14} strokeWidth={3} aria-hidden="true" />
+                          <Clock size={14} strokeWidth={3} aria-hidden="true" />
                         </button>
                       )}
                       <Link className="name" href={`/clients/${l.id}`}>{l.name}</Link>
