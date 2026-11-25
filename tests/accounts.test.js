@@ -5,7 +5,7 @@ process.env.ACCOUNTS_GID = "42";
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { authenticate, clearAccountsCache, getResetRequests, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled, resetAccountPassword } from "../lib/accounts.js";
+import { authenticate, clearAccountsCache, listResettableAccounts, liveAccount, masterMatches, normalizeAccounts, registerAccount, registrationEnabled, resetAccountPassword, resetEnabled } from "../lib/accounts.js";
 import { createSessionValue, readSessionValue } from "../lib/session.js";
 import { cleanEmail, cleanPhone } from "../lib/contacts.js";
 import { isEncrypted, verifyPin } from "../lib/pinVault.js";
@@ -235,75 +235,65 @@ test("passwords: plain text still signs in, and is hashed in the sheet the next 
   assert.equal(writes.length, before);
 });
 
-test("getResetRequests lists only accounts marked in the Reset column, excluding contact-only rows", async () => {
-  clearAccountsCache();
+/** The shared sheet: "*" on an admin's own row makes their password the reset key. */
+const resetSheet = () => [
+  { ...row("aditi", "aditi-admin-pass", "admin", "Aditi"), Reset: "*" },
+  { ...row("boss", "master-pass", "master-admin", "The Boss"), Reset: "" },
+  { ...row("meera", "bd-pass-1", "b2b", "Meera Rao"), Reset: "*" },
+  { ...row("karan", "old-pass", "b2b", "Karan"), Reset: "" },
+  { ...row("opsy", "ops-pass", "ops", "Ops Person"), Reset: "" },
+  { ...row("nopass", "", "b2b", "No Password"), Reset: "" },
+];
+
+test("reset is on only while some admin is marked; a mark on a non-admin row does nothing", async () => {
   const headers = [...HEADERS, "Reset"];
-  const rows = [
-    { ...row("meera", "bd-pass-1", "b2b", "Meera Rao"), Reset: "" },
-    { ...row("karan", "bd-pass-2", "b2b", "Karan"), Reset: "*" },
-    { ...row("nopass", "", "b2b", "No Password"), Reset: "*" },
-  ];
-  const { deps } = fakeSheet(rows, headers);
-  assert.deepEqual(await getResetRequests(deps), [{ username: "karan", name: "Karan" }]);
+  clearAccountsCache();
+  assert.equal(await resetEnabled(fakeSheet(resetSheet(), headers).deps), true);
+  const a = normalizeAccounts(resetSheet());
+  assert.deepEqual(a.filter((x) => x.resetAdmin).map((x) => x.username), ["aditi"], "only the marked admin, not marked b2b Meera nor unmarked master-admin");
+
+  clearAccountsCache();
+  const noAdminMarked = resetSheet().map((r) => (r.username === "aditi" ? { ...r, Reset: "" } : r));
+  assert.equal(await resetEnabled(fakeSheet(noAdminMarked, headers).deps), false);
 });
 
-test("resetting a password needs the master password AND a Reset mark, then clears the mark so it can't be replayed", async () => {
+test("the account list needs a marked admin's password, and then lists everyone who can sign in", async () => {
   clearAccountsCache();
-  const headers = [...HEADERS, "Reset"];
-  const rows = [
-    { ...row("meera", "bd-pass-1", "b2b", "Meera Rao"), Reset: "" },
-    { ...row("karan", "old-pass", "b2b", "Karan"), Reset: "*" },
-    { ...row("boss", "master-pass", "master-admin", "The Boss"), Reset: "" },
-  ];
-  const { deps } = writableSheet(rows, headers);
-
-  await assert.rejects(() => resetAccountPassword({ master: "wrong", username: "karan", password: "new-pass-1" }, { ip: "rs1", ...deps }), (e) => e.status === 401);
-  await assert.rejects(
-    () => resetAccountPassword({ master: "master-pass", username: "meera", password: "new-pass-1" }, { ip: "rs2", ...deps }),
-    (e) => e.status === 409 && /has not asked for a reset/.test(e.message),
-  );
-  await assert.rejects(() => resetAccountPassword({ master: "master-pass", username: "karan", password: "123" }, { ip: "rs3", ...deps }), /at least 6/);
-
-  const done = await resetAccountPassword({ master: "master-pass", username: "karan", password: "new-pass-1" }, { ip: "rs4", ...deps });
-  assert.equal(done.username, "karan");
-  const karanRow = rows.find((r) => r.username === "karan");
-  assert.equal(karanRow.Reset, "", "the mark is cleared");
-  assert.equal(isEncrypted(karanRow.password), true, "stored as a hash, never as typed");
-  assert.equal(await verifyPin("new-pass-1", karanRow.password), true);
-
-  clearAccountsCache();
-  assert.equal((await authenticate("karan", "new-pass-1", "rs5", deps)).role, "b2b");
-  await assert.rejects(() => authenticate("karan", "old-pass", "rs6", deps), (e) => e.status === 401, "the old password stops working");
-
-  clearAccountsCache();
-  await assert.rejects(
-    () => resetAccountPassword({ master: "master-pass", username: "karan", password: "another-pass" }, { ip: "rs7", ...deps }),
-    (e) => e.status === 409,
-    "the same request cannot be replayed once the mark is cleared",
-  );
+  const { deps } = fakeSheet(resetSheet(), [...HEADERS, "Reset"]);
+  await assert.rejects(() => listResettableAccounts({ action: "list", admin: "master-pass" }, { ip: "rl1", ...deps }), (e) => e.status === 401, "the unmarked master-admin's password is not a reset key");
+  await assert.rejects(() => listResettableAccounts({ action: "list", admin: "bd-pass-1" }, { ip: "rl2", ...deps }), (e) => e.status === 401, "a marked non-admin's password is not either");
+  const list = await listResettableAccounts({ action: "list", admin: "aditi-admin-pass" }, { ip: "rl3", ...deps });
+  assert.deepEqual(list.map((a) => a.username), ["aditi", "boss", "meera", "karan", "opsy"], "every account with a password, ops too; contact-only rows left out");
+  assert.equal(list.find((a) => a.username === "meera").name, "Meera Rao");
 });
 
-test('a "***" mark stands: it stays after a reset, so the same row can be reset again without re-marking it', async () => {
+test("a marked admin's password resets any account; the Reset column is left alone and the old password stops working", async () => {
   clearAccountsCache();
   const headers = [...HEADERS, "Reset"];
-  const rows = [
-    { ...row("bulk-import", "old-bulk-pass", "b2b", "Bulk Import"), Reset: "***" },
-    { ...row("boss", "master-pass", "master-admin", "The Boss"), Reset: "" },
-  ];
-  const { deps } = writableSheet(rows, headers);
+  const rows = resetSheet();
+  const { deps, writes } = writableSheet(rows, headers);
 
-  await resetAccountPassword({ master: "master-pass", username: "bulk-import", password: "bulk-pass-1" }, { ip: "rs8", ...deps });
-  assert.equal(rows.find((r) => r.username === "bulk-import").Reset, "***", 'the "***" mark is left in place');
-  assert.deepEqual(await getResetRequests(deps), [{ username: "bulk-import", name: "Bulk Import" }]);
+  await assert.rejects(() => resetAccountPassword({ admin: "wrong", username: "karan", password: "new-pass-1" }, { ip: "rs1", ...deps }), (e) => e.status === 401);
+  await assert.rejects(() => resetAccountPassword({ admin: "aditi-admin-pass", username: "karan", password: "123" }, { ip: "rs2", ...deps }), /at least 6/);
+  await assert.rejects(() => resetAccountPassword({ admin: "aditi-admin-pass", username: "nobody", password: "new-pass-1" }, { ip: "rs3", ...deps }), (e) => e.status === 404);
+  await assert.rejects(() => resetAccountPassword({ admin: "aditi-admin-pass", username: "nopass", password: "new-pass-1" }, { ip: "rs4", ...deps }), (e) => e.status === 409);
+
+  const before = writes.length;
+  const done = await resetAccountPassword({ admin: "aditi-admin-pass", username: "KARAN", password: "new-pass-1" }, { ip: "rs5", ...deps });
+  assert.equal(done.username, "karan", "an account nobody marked can be reset");
+  assert.equal(writes.length - before, 1, "one cell written");
+  const karan = rows.find((r) => r.username === "karan");
+  assert.equal(isEncrypted(karan.password), true, "stored as a hash, never as typed");
+  assert.equal(rows.find((r) => r.username === "aditi").Reset, "*", "the admin's mark stays");
+  assert.equal(karan.Reset, "", "nothing written to the Reset column");
 
   clearAccountsCache();
-  // reset again, straight away, with no need to re-mark the row in between
-  await resetAccountPassword({ master: "master-pass", username: "bulk-import", password: "bulk-pass-2" }, { ip: "rs9", ...deps });
-  assert.equal(rows.find((r) => r.username === "bulk-import").Reset, "***");
+  assert.equal((await authenticate("karan", "new-pass-1", "rs6", deps)).role, "b2b");
+  await assert.rejects(() => authenticate("karan", "old-pass", "rs7", deps), (e) => e.status === 401, "the old password stops working");
 
-  clearAccountsCache();
-  assert.equal((await authenticate("bulk-import", "bulk-pass-2", "rs10", deps)).role, "b2b");
-  await assert.rejects(() => authenticate("bulk-import", "bulk-pass-1", "rs11", deps), (e) => e.status === 401, "the first reset's password stops working");
+  // unmarking the admin takes the power away straight away (the reset reads the sheet fresh, not the cache)
+  rows.find((r) => r.username === "aditi").Reset = "";
+  await assert.rejects(() => resetAccountPassword({ admin: "aditi-admin-pass", username: "karan", password: "another-1" }, { ip: "rs8", ...deps }), (e) => e.status === 403);
 });
 
 test("passwords: a sheet that cannot be written to still signs people in", async () => {

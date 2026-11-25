@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import ResetForm from "@/components/ResetForm";
-import { accountsConfigured, getResetRequests, registrationEnabled } from "@/lib/accounts";
+import { accountsConfigured, resetEnabled } from "@/lib/accounts";
 
 export const metadata = { title: "Reset a password · Snackible CRM" };
 export const dynamic = "force-dynamic";
 
 export default async function ResetPasswordPage() {
-  if (!accountsConfigured() || !(await registrationEnabled())) redirect("/login");
-  const requests = await getResetRequests();
-  return <ResetForm requests={requests} />;
+  if (!accountsConfigured()) redirect("/login");
+  return <ResetForm enabled={await resetEnabled()} />;
 }
